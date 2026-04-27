@@ -1,0 +1,38 @@
+{
+    // エンコーディングの自動推測をオフにする (設定値を優先させるため)
+    "files.autoGuessEncoding": false,
+    
+    // 全体のデフォルトは UTF-8
+    "files.encoding": "utf8",
+
+    // 拡張子と言語モードの強制紐付け
+    "files.associations": {
+        "*.bas": "vb",
+        "*.cls": "vb",
+        "*.frm": "vb",
+        "*.ctl": "vb",
+        "*.ini": "ini",
+        "Doxyfile": "properties"
+    },
+
+    // "vb" 言語のファイルに対する設定
+    "[vb]": {
+        // Shift-JIS を強制
+        "files.encoding": "shiftjis"
+    },
+    
+    // "ini" 言語のファイルに対する設定
+    "[ini]": {
+        // Shift-JIS を強制
+        "files.encoding": "shiftjis",
+    },
+    
+    // CSV
+    "[csv]": {
+        "files.encoding": "shiftjis"
+    },
+    
+    "markdown-pdf.styles": [
+        "style.css"
+    ]
+}
