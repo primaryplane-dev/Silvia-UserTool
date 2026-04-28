@@ -13,6 +13,8 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+
 Option Explicit
 
 Private Sub cmdCancel_Click()
@@ -32,18 +34,7 @@ Private Sub UserForm_Initialize()
 End Sub
 
 Private Sub subMakeList()
-    
-    lstItem.Clear
-    
-    ' ãÛîíçs
-    lstItem.AddItem
-    lstItem.List(lstItem.ListCount - 1, 0) = ""
-    
-    ' éwíËÇÃçHíˆÇÃÇ›í«â¡
-    lstItem.AddItem
-    lstItem.List(lstItem.ListCount - 1, 0) = "ê¨å^"
-    
-    lstItem.AddItem
-    lstItem.List(lstItem.ListCount - 1, 0) = "ó‚ãp"
-    
+    Dim arrItems As Variant
+    arrItems = Bas_LogicConveyor.GetSelectableProcessList()
+    Bas_Utilities.FillListBox lstItem, arrItems
 End Sub

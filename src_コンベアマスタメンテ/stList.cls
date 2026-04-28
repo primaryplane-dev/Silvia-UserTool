@@ -9,23 +9,25 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Option Explicit
 
-Private Sub cmdSelect_Click()
+' 選択ボタン
+Sub stList_Select_Click()
     '再表示処理
     If fncChkChange Then
         If MsgBox("変更内容が保存されていませんが、よろしいですか", vbOKCancel) = vbCancel Then Exit Sub
     End If
-    
     Call subMain
 End Sub
 
-Private Sub cmdUpdate_Click()
+' 保存ボタン
+Sub stList_Update_Click()
     If Not fncInputCheck Then Exit Sub
     Call subBeforeEdit
     Call subUpdate
     Call subMain
 End Sub
 
-Private Sub cmdEnd_Click()
+' 終了ボタン
+Sub stList_End_Click()
     If fncChkChange Then
         If MsgBox("変更内容が保存されていませんが、よろしいですか", vbOKCancel) = vbCancel Then Exit Sub
     End If

@@ -1,3 +1,25 @@
+Attribute VB_Name = "Bas_Utilities"
+Option Explicit
+
+'' コンボボックスに2次元配列をセット
+Public Sub FillComboBox(cmb As MSForms.ComboBox, arr As Variant)
+    cmb.Clear
+    Dim i As Long
+    For i = LBound(arr) To UBound(arr)
+        cmb.AddItem
+        cmb.List(cmb.ListCount - 1, 0) = arr(i)(0)
+        cmb.List(cmb.ListCount - 1, 1) = arr(i)(1)
+    Next
+End Sub
+
+'' リストボックスに配列をセット
+Public Sub FillListBox(lst As MSForms.ListBox, arr As Variant)
+    lst.Clear
+    Dim i As Long
+    For i = LBound(arr) To UBound(arr)
+        lst.AddItem arr(i)
+    Next
+End Sub
 '' AS/400の8桁日付（yyyyMMdd）をDate型に変換
 Public Function ConvertDate(ByVal strDate As String) As Date
     On Error GoTo ErrorHandler
@@ -15,8 +37,6 @@ Public Function ConvertDate(ByVal strDate As String) As Date
 ErrorHandler:
     ConvertDate = CDate("1900/01/01")
 End Function
-Attribute VB_Name = "Bas_Utilities"
-Option Explicit
 
 ' 設定ファイル（Key=Value形式）から値を取得
 Public Function GetIniValue(ByVal strKey As String, ByVal strDefault As String, ByVal strFilePath As String) As String

@@ -114,6 +114,8 @@ Public Sub subUpdate()
         End If
     Next
     
+    'DB更新後に最新データでシート再描画
+    Call subEditList
     'ＤＢ切断
     CN.Close:   Set CN = Nothing
 

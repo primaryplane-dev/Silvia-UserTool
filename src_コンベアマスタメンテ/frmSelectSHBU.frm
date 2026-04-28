@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Option Explicit
 
 Private Sub UserForm_Initialize()
@@ -24,18 +25,9 @@ Private Sub UserForm_Initialize()
 End Sub
 
 Private Sub subMakeCombo()
-    cmbSHBU.AddItem
-    cmbSHBU.List(cmbSHBU.ListCount - 1, 0) = ""
-    cmbSHBU.List(cmbSHBU.ListCount - 1, 1) = ""
-    cmbSHBU.AddItem
-    cmbSHBU.List(cmbSHBU.ListCount - 1, 0) = "1"
-    cmbSHBU.List(cmbSHBU.ListCount - 1, 1) = "ビスケット"
-    cmbSHBU.AddItem
-    cmbSHBU.List(cmbSHBU.ListCount - 1, 0) = "2"
-    cmbSHBU.List(cmbSHBU.ListCount - 1, 1) = "クッキー"
-    cmbSHBU.AddItem
-    cmbSHBU.List(cmbSHBU.ListCount - 1, 0) = "3"
-    cmbSHBU.List(cmbSHBU.ListCount - 1, 1) = "ドーナツ"
+    Dim arrItems As Variant
+    arrItems = Bas_LogicConveyor.GetSHBUList()
+    Bas_Utilities.FillComboBox cmbSHBU, arrItems
 End Sub
 
 Private Sub cmdRegist_Click()

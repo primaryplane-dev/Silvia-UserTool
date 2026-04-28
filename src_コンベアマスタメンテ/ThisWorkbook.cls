@@ -15,16 +15,7 @@ Private Sub Workbook_Open()
     'SBFP01にはSHBU が無いので選択画面はスキップ。
     'SHBUが必要可能性もあるのでコメントアウト対応。
 
-    'ボタンのサイズ調整
-'    With stList.OLEObjects("cmdSelect")　'「アイテム選択」ボタンは非表示処置
-'        .Height = 27: .Width = 90: .Top = 9: .Left = 219
-'    End With
-    With stList.OLEObjects("cmdUpdate")
-        .Height = 27: .Width = 90: .Top = 9: .Left = 318
-    End With
-    With stList.OLEObjects("cmdEnd")
-        .Height = 27: .Width = 90: .Top = 9: .Left = 417
-    End With
+    'ActiveXコントロールボタン廃止のため、サイズ調整処理は不要
     
     
     'Call subOpenSelectSHBU
