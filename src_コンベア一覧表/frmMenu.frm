@@ -91,7 +91,7 @@ Private Sub cmdCalD_Click()
     Call subOpenCalendar
     
     ' カレンダーで日付が選択された場合のみ更新
-    If P_Regist2 Then
+    If P_CalendarSelected Then
         Me.txtDate.Value = Format(P_calDATE, "yyyy/mm/dd")
         ' 日付が変わったので商品リストを再取得
         Call subMakeComboHINM
@@ -99,7 +99,7 @@ Private Sub cmdCalD_Click()
 End Sub
 
 Private Sub subOpenCalendar()
-    P_Regist2 = False
+    P_CalendarSelected = False
     Dim obj As New frmCalendar
     obj.Show
     Set obj = Nothing
@@ -126,13 +126,11 @@ Private Sub subMakeComboHINM()
     ' 日付が不正なら終了
     If Not IsDate(Me.txtDate.Value) Then Exit Sub
     
-    Set CN = CreateObject("ADODB.Connection")
+    Set CN = Bas_DbConnection.GetConnection()
     Set RS = CreateObject("ADODB.Recordset")
-    
-    ' DB接続
+    ' DB接続（Bas_DbConnection経由で共通化）
     On Error GoTo ErrConnect
-    CN.CursorLocation = 3 ' adUseClient
-    CN.Open P_ConnectString ' ※標準モジュールのPublic定数を使用
+    CN.CursorLocation = 3 ' adUseClient（念のため）
     On Error GoTo 0
     
     ' SQL作成

@@ -51,11 +51,11 @@ Public P_BKRow              As Long 'îıçlçs
 'frmSelectSHBU
 Public P_SHBU                   As String
 Public P_SHNM                   As String
-Public P_Regist2                As Boolean
+Public P_CalendarSelected                As Boolean
 Public P_SelItem                As String
 
 'frmSerch
-'Public P_Regist2            As Boolean
+'Public P_CalendarSelected            As Boolean
 Public P_SelHNO             As String
 Public P_SelHNM             As String
 

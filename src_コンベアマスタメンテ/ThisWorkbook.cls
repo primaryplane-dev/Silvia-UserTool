@@ -19,7 +19,7 @@ Private Sub Workbook_Open()
     
     
     'Call subOpenSelectSHBU
-    'If P_Regist2 And Not P_SHBU = "" Then
+    'If P_CalendarSelected And Not P_SHBU = "" Then
         Call subMain
     'End If
     

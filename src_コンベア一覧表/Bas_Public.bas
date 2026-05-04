@@ -12,7 +12,7 @@ Public P_KJNO As String         ' ƒ‰ƒCƒ“No (—á: 001)
 Public P_HINM As String         ' ¤•i–¼
 
 
-Public P_Regist2        As Boolean
+Public P_CalendarSelected        As Boolean
 Public P_calDATE        As Date
 
 

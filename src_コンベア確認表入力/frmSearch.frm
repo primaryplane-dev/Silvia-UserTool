@@ -22,14 +22,14 @@ End Sub
 
 Private Sub cmdRegist_Click()
     If lstData.Text = "" Then Exit Sub
-    P_Regist2 = True
+    P_CalendarSelected = True
     P_SelHNO = lstData.Value
     P_SelHNM = lstData.Text
     Unload Me
 End Sub
 
 Private Sub UserForm_Initialize()
-    P_Regist2 = False
+    P_CalendarSelected = False
     txtWord.Text = ""
     lstData.Clear
 End Sub

@@ -17,7 +17,7 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private Sub UserForm_Initialize()
-    P_Regist2 = False
+    P_CalendarSelected = False
     Call subMakeCombo
     If Not P_SHBU = "" Then
         cmbSHBU.Value = P_SHBU
@@ -34,7 +34,7 @@ Private Sub cmdRegist_Click()
     If cmbSHBU.Text = "" Then Exit Sub
     P_SHBU = cmbSHBU.Value
     P_SHNM = cmbSHBU.Text
-    P_Regist2 = True
+    P_CalendarSelected = True
     Unload Me
 End Sub
 

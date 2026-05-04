@@ -12,6 +12,6 @@ Public P_Regist                 As Boolean
 'frmSelectItem
 Public P_SHBU                   As String   'SBFP01‚É‚ÍSHBU ‚ª–³‚¢‚ª•œŠˆ‚Ìê‡‚É”õ‚¦‚Ä•Û‘¶
 Public P_SHNM                   As String
-Public P_Regist2                As Boolean
+Public P_CalendarSelected                As Boolean
 
 

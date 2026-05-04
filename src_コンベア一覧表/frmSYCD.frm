@@ -73,8 +73,7 @@ Private Function fncGetSYNM() As Boolean
     '入力チェック
     If Val(strSYCD) = 0 Then Exit Function
     
-    'Ini読込
-    If P_ConnectString = "" Then Call subGetIniFile
+    'Ini読込不要（共通DB接続化）
 
     '社員マスタを読む
     If Not GetSYCD(strSYCD, strSYNM) Then Exit Function
@@ -90,12 +89,11 @@ Public Sub MakecbSYCD()
     Dim RS          As New ADODB.Recordset
     Dim strSQL      As String
     
-    'Ini読込
-    If P_ConnectString = "" Then Call subGetIniFile
+    'Ini読込不要（共通DB接続化）
     
-    'ＤＢ接続
-    CN.CursorLocation = adUseClient
-    CN.Open P_ConnectString
+    'ＤＢ接続（共通化）
+    Set CN = Bas_DbConnection.GetConnection()
+    CN.CursorLocation = adUseClient ' 念のため
     
     'IHTP01:   担当者マスタ
     strSQL = ""
@@ -121,14 +119,13 @@ Public Sub MakecbSYCD()
 End Sub
 
 Private Function GetSYCD(ByVal iSYCD As String, ByRef oSYNM As String) As Boolean
-    Dim CN          As Object:  Set CN = CreateObject("ADODB.Connection")
+    Dim CN          As Object:  Set CN = Bas_DbConnection.GetConnection()
     Dim RS          As Object:  Set RS = CreateObject("ADODB.Recordset")
     Dim strSQL      As String
     
     GetSYCD = False
-    'ＤＢ接続
-    CN.CursorLocation = adUseClient
-    CN.Open P_ConnectString
+    'ＤＢ接続（共通化）
+    CN.CursorLocation = adUseClient ' 念のため
     
 
     'BVAP01：従業員管理マスタ

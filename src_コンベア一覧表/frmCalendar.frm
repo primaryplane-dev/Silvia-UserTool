@@ -18,7 +18,7 @@ Option Explicit
 Private Sub UserForm_Initialize()
     Dim dateWK      As Date
     
-    P_Regist2 = False
+    P_CalendarSelected = False
     dateWK = Now
     If P_calDATE > 0 Then dateWK = P_calDATE
     Me.txtDate = Format(dateWK, "yyyy/mm/dd")
@@ -34,7 +34,7 @@ End Sub
 
 Private Sub subOK()
     P_calDATE = CDate(Me.txtDate)
-    P_Regist2 = True
+    P_CalendarSelected = True
     Unload Me
 End Sub
 

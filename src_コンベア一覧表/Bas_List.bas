@@ -73,17 +73,8 @@ End Sub
 Public Sub subEditList()
     Dim ST          As Worksheet: Set ST = stList
     Dim SET_WS      As Worksheet: Set SET_WS = stSetting
-    Dim CN          As Object
     Dim RS          As Object
-    Dim strSQL      As String
     Dim lRow        As Long
-    Dim lCol        As Long
-    Dim strKey      As String
-    Dim vKTCD       As Variant
-    Dim vCVNM       As Variant
-    
-    Set CN = CreateObject("ADODB.Connection")
-    Set RS = CreateObject("ADODB.Recordset")
     
     ' ---------------------------------------------------------
     ' 1. 初期化 & ヘッダ情報セット
@@ -129,43 +120,24 @@ Public Sub subEditList()
     ST.Cells(6, CL_SY).Value = P_SYNM
     
     ' ---------------------------------------------------------
-    ' 2. DB接続 & マスタデータ(SBFP01) 読込
+    ' 2. マスタデータ(SBFP01) 読込（BLL経由）
     ' ---------------------------------------------------------
-    CN.CursorLocation = 3 ' adUseClient
-    CN.Open P_ConnectString
-    
-    strSQL = ""
-    strSQL = strSQL & "SELECT BFKTCD, BFCVNO, BFCVNM "
-    strSQL = strSQL & "  FROM LIBSMF17.SBFP01 "
-    strSQL = strSQL & " WHERE BFDELT = '' "
-    If P_ChkKBN = 1 Then
-        strSQL = strSQL & "   AND CAST(BFKTCD AS INT) >= 1 AND CAST(BFKTCD AS INT) <= 20 "
-    ElseIf P_ChkKBN = 2 Then
-        strSQL = strSQL & "   AND CAST(BFKTCD AS INT) >= 21 "
+    Set RS = Bas_LogicConveyor.GetConveyorListWithLogic()
+    lRow = RW_FR ' データ開始行
+    If Not RS Is Nothing Then
+        Do While Not RS.EOF
+            If lRow > RW_FR Then
+                ST.Rows(lRow & ":" & lRow + 1).Insert Shift:=xlDown
+                ST.Rows(RW_FR & ":" & RW_FR + 1).Copy Destination:=ST.Rows(lRow)
+            End If
+            ST.Cells(lRow, 1).Value = RS("No")
+            ST.Cells(lRow, 2).Value = RS("名称")
+            ST.Cells(lRow, "BC").Value = RS("工程")
+            lRow = lRow + 2
+            RS.MoveNext
+        Loop
+        RS.Close
     End If
-    strSQL = strSQL & " ORDER BY BFKTCD, BFCVNO "
-    
-    RS.Open strSQL, CN, 0, 1
-    
-    lRow = RW_FR ' 36行目から開始
-    Do While Not RS.EOF
-        vKTCD = RS("BFKTCD") & ""
-        vCVNM = RS("BFCVNM") & ""
-        
-        ' 修正済みの安全な行コピー
-        If lRow > RW_FR Then
-            ST.Rows(lRow & ":" & lRow + 1).Insert Shift:=xlDown
-            ST.Rows(RW_FR & ":" & RW_FR + 1).Copy Destination:=ST.Rows(lRow)
-        End If
-        
-        ST.Cells(lRow, 1).Value = RS("BFCVNO") ' No
-        ST.Cells(lRow, 2).Value = vCVNM        ' 名称
-        ST.Cells(lRow, "BC").Value = vKTCD     ' 隠しキー
-        
-        lRow = lRow + 2
-        RS.MoveNext
-    Loop
-    RS.Close
     ST.Columns("BC").Hidden = True
     
     ' =========================================================

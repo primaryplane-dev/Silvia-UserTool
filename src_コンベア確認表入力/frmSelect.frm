@@ -100,7 +100,7 @@ End Sub
 
 Private Sub cmdSerch_Click()
     Call subOpenSerch
-    If Not P_Regist2 Then Exit Sub
+    If Not P_CalendarSelected Then Exit Sub
     txtHINM.Tag = P_SelHNO
     txtHINM.Text = P_SelHNM
 End Sub
