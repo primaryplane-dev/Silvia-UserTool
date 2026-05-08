@@ -22,7 +22,7 @@ End Sub
 Sub stList_Update_Click()
     If Not fncInputCheck Then Exit Sub
     Call subBeforeEdit
-    Call subUpdate
+    Call Bas_DaoConveyor.UpdateConveyorList(Me, stWork, RW_FR)
     Call subMain
 End Sub
 

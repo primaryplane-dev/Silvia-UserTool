@@ -117,66 +117,34 @@ End Sub
 ' ==============================================================================
 Private Sub subMakeComboHINM()
     Dim CN As Object
-    Dim RS As Object
-    Dim strSQL As String
-    
     ' コンボボックスをクリア
     Me.cmbHinm.Clear
-    
     ' 日付が不正なら終了
     If Not IsDate(Me.txtDate.Value) Then Exit Sub
-    
-    Set CN = Bas_DbConnection.GetConnection()
-    Set RS = CreateObject("ADODB.Recordset")
-    ' DB接続（Bas_DbConnection経由で共通化）
-    On Error GoTo ErrConnect
-    CN.CursorLocation = 3 ' adUseClient（念のため）
-    On Error GoTo 0
-    
-    ' SQL作成
-    strSQL = ""
-    strSQL = strSQL & "SELECT DISTINCT "
-    strSQL = strSQL & "       BGHINM "
-    strSQL = strSQL & "     , BGHINO "
-    strSQL = strSQL & "     , BGKJNO "
-    strSQL = strSQL & "  FROM LIBSMF17.SBGP01 "
-    strSQL = strSQL & " WHERE BGDELT = '' "
-    strSQL = strSQL & "   AND BGSDAT = " & Format(Me.txtDate.Value, "yyyymmdd")
-    strSQL = strSQL & " ORDER BY BGHINO, BGKJNO "
-    
-    On Error Resume Next
-    RS.Open strSQL, CN, 0, 1
-    
-    If Err.Number <> 0 Then
-        ' SQLエラーの場合
+    Dim yyyymmdd As String
+    yyyymmdd = Format(Me.txtDate.Value, "yyyymmdd")
+    Dim RS As Object
+    Set RS = Bas_LogicConveyor.GetHinmListWithLogic(yyyymmdd)
+    If RS Is Nothing Then
         Me.cmbHinm.AddItem "SQLエラー"
-        Debug.Print "SQL Error: " & Err.Description
-    Else
-        If Not RS.EOF Then
-            ' データがある場合
-            Do While Not RS.EOF
-                Dim sName As String
-                sName = RS("BGHINM") & ""
-                If sName = "" Then sName = "(名称未設定)"
-                
-                Me.cmbHinm.AddItem sName
-                Me.cmbHinm.List(Me.cmbHinm.ListCount - 1, 1) = RS("BGHINO") & ""
-                Me.cmbHinm.List(Me.cmbHinm.ListCount - 1, 2) = RS("BGKJNO") & ""
-                RS.MoveNext
-            Loop
-            ' 先頭を選択状態にする
-            Me.cmbHinm.ListIndex = 0
-        Else
-            ' データが0件の場合
-            Me.cmbHinm.AddItem "該当データなし"
-        End If
-        RS.Close
+        Exit Sub
     End If
-    On Error GoTo 0
-    
-    CN.Close
+    If Not RS.EOF Then
+        Do While Not RS.EOF
+            Dim sName As String
+            sName = RS("BGHINM") & ""
+            If sName = "" Then sName = "(名称未設定)"
+            Me.cmbHinm.AddItem sName
+            Me.cmbHinm.List(Me.cmbHinm.ListCount - 1, 1) = RS("BGHINO") & ""
+            Me.cmbHinm.List(Me.cmbHinm.ListCount - 1, 2) = RS("BGKJNO") & ""
+            RS.MoveNext
+        Loop
+        Me.cmbHinm.ListIndex = 0
+    Else
+        Me.cmbHinm.AddItem "該当データなし"
+    End If
+    RS.Close
     Set RS = Nothing
-    Set CN = Nothing
     Exit Sub
 
 ErrConnect:

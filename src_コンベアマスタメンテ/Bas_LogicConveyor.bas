@@ -1,17 +1,31 @@
 Attribute VB_Name = "Bas_LogicConveyor"
+'/**
+' * @file Bas_LogicConveyor.bas
+' * @brief コンベア業務ロジック層 (BLL)
+' * @note コンベアに関する業務ルールを適用する実装
+'
 Option Explicit
 
-'' SHBU選択肢リスト (frmSelectSHBU)
+'/**
+' * @brief SHBU選択肢リストを取得
+' * @return Variant SHBUリスト
+'
 Public Function GetSHBUList() As Variant
     GetSHBUList = Array(Array("", ""), Array("1", "ビスケット"), Array("2", "クッキー"), Array("3", "ドーナツ"))
 End Function
 
-'' 工程リスト (frmSelectlist)
+'/**
+' * @brief 工程リストを取得
+' * @return Variant 工程リスト
+'
 Public Function GetSelectableProcessList() As Variant
     GetSelectableProcessList = Array("", "成型", "冷却")
 End Function
 
-' コンベア一覧の業務ロジック（例：名称のフィルタや加工など）
+'/**
+' * @brief コンベア一覧の業務ロジック（例：名称のフィルタや加工など）
+' * @return Object 加工済みRecordset
+'
 Public Function GetConveyorListWithLogic() As Object
     On Error GoTo ErrorHandler
     Dim rsRaw As Object: Set rsRaw = Bas_DaoConveyor.GetConveyorList()
