@@ -13,10 +13,20 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+/**
+ * @file frmDateTime.frm
+ * @brief 日付・時刻入力画面 (UI 層)
+ * @note ユーザーによる日付・時刻入力と返却のみを担当
+ */
 
 Option Explicit
 
+
+'/**
+' * @brief フォーム初期化処理
+' */
 Private Sub UserForm_Initialize()
+    On Error GoTo ErrorHandler
     P_DateTime_FLG = False
     If Not P_DateTimeMode = 2 Then  '編集モード
         cmdDelete.Enabled = False
@@ -27,23 +37,54 @@ Private Sub UserForm_Initialize()
         lblTime.Caption = Format(P_DateTime, "hh:mm")
         lblTime.Tag = Format(P_DateTime, "hh:mm:ss")
     End If
+    Exit Sub
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmDateTime.UserForm_Initialize: " & Err.Number & " - " & Err.Description
+    Call MsgBox("画面初期化中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
+'/**
+' * @brief キャンセルボタン押下時の処理
+' */
 Private Sub btnCancel_Click()
+    On Error GoTo ErrorHandler
     Unload Me
+    Exit Sub
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmDateTime.btnCancel_Click: " & Err.Number & " - " & Err.Description
+	Call MsgBox("キャンセル処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
+'/**
+' * @brief 決定ボタン押下時の処理
+' */
 Private Sub btnOk_Click()
+    On Error GoTo ErrorHandler
     If lblDate.Caption = "" Or lblDate.Tag = "" Then Exit Sub
     If lblTime.Caption = "" Or lblTime.Tag = "" Then Exit Sub
-    If Not IsDate(lblTime.Tag) Then MsgBox ("時刻が不正です"): Exit Sub
-    If fncChkExist(CDate(lblDate.Tag & " " & lblTime.Tag)) Then MsgBox ("この時刻のデータはすでに存在しています"): Exit Sub
+    If Not IsDate(lblTime.Tag) Then
+        Call MsgBox("時刻が不正です", vbExclamation, Bas_Configuration.SYSTEM_NAME)
+        Exit Sub
+    End If
+    If fncChkExist(CDate(lblDate.Tag & " " & lblTime.Tag)) Then
+        Call MsgBox("この時刻のデータはすでに存在しています", vbExclamation, Bas_Configuration.SYSTEM_NAME)
+        Exit Sub
+    End If
     P_DateTime = CDate(lblDate.Tag & " " & lblTime.Tag)
     P_DateTime_FLG = True
     Unload Me
+    Exit Sub
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmDateTime.btnOk_Click: " & Err.Number & " - " & Err.Description
+    Call MsgBox("決定処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
+
+'/**
+' * @brief 入力済み時刻の重複チェック
+' */
 Private Function fncChkExist(ByVal dateTime As Date) As Boolean
+    On Error GoTo ErrorHandler
     Dim lRow        As Long
     fncChkExist = False
     lRow = 1
@@ -54,73 +95,111 @@ Private Function fncChkExist(ByVal dateTime As Date) As Boolean
         End If
         lRow = lRow + 1
     Loop
+    Exit Function
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmDateTime.fncChkExist: " & Err.Number & " - " & Err.Description
+    Call MsgBox("時刻重複チェック中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
+    fncChkExist = False
 End Function
 
+'/**
+' * @brief 削除ボタン押下時の処理
+' */
 Private Sub cmdDelete_Click()
+    On Error GoTo ErrorHandler
     P_DateTime_FLG = True
     P_DateTimeMode = 3      '削除
     Unload Me
+    Exit Sub
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmDateTime.cmdDelete_Click: " & Err.Number & " - " & Err.Description
+    Call MsgBox("削除処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
+'/**
+' * @brief カレンダーボタン押下時の処理
+' */
 Private Sub cmdCalendar_Click()
+    On Error GoTo ErrorHandler
     If Not lblDate.Tag = "" Then P_DATEC = CDate(lblDate.Tag)
     Call subOpenCalendar
     If Not P_Calendar_FLG Then Exit Sub
     lblDate.Caption = Format(P_DATEC, "m/d")
     lblDate.Tag = Format(P_DATEC, "yyyy/mm/dd")
+    Exit Sub
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmDateTime.cmdCalendar_Click: " & Err.Number & " - " & Err.Description
+    Call MsgBox("カレンダー処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
+'/**
+' * @brief カレンダー画面の表示
+' */
 Private Sub subOpenCalendar()
+    On Error GoTo ErrorHandler
     Dim obj As New frmCalendar
     obj.Show
     Set obj = Nothing
+    Exit Sub
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmDateTime.subOpenCalendar: " & Err.Number & " - " & Err.Description
+    Call MsgBox("カレンダー表示中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
+
+'/**
+' * @brief 前日ボタン押下時の処理
+' */
 Private Sub cmdBack_Click()
+    On Error GoTo ErrorHandler
     If lblDate.Caption = "" Then Exit Sub
     lblDate.Tag = Format(DateAdd("d", -1, CDate(lblDate.Tag)), "yyyy/mm/dd")
     lblDate.Caption = Format(CDate(lblDate.Tag), "m/d")
+    Exit Sub
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmDateTime.cmdBack_Click: " & Err.Number & " - " & Err.Description
+	Call MsgBox("前日処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
+
+'/**
+' * @brief 翌日ボタン押下時の処理
+' */
 Private Sub cmdNext_Click()
+    On Error GoTo ErrorHandler
     If lblDate.Caption = "" Then Exit Sub
     lblDate.Tag = Format(DateAdd("d", 1, CDate(lblDate.Tag)), "yyyy/mm/dd")
     lblDate.Caption = Format(CDate(lblDate.Tag), "m/d")
+    Exit Sub
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmDateTime.cmdNext_Click: " & Err.Number & " - " & Err.Description
+	Call MsgBox("翌日処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
+
+'/**
+' * @brief テンキー入力処理
+' */
 Private Sub subKeyClick(ByVal key As String)
+    On Error GoTo ErrorHandler
     Dim strLabel As String
-    
     strLabel = lblTime.Caption
-    
     Select Case key
-    Case "C"
-        strLabel = ""
-    Case ":"
-        If InStr(1, strLabel, ":") = 0 Then
-            strLabel = strLabel & ":"
-        End If
-    Case Else
-        strLabel = strLabel & key
+        Case "C"
+            strLabel = ""
+        Case ":"
+            If InStr(1, strLabel, ":") = 0 Then
+                strLabel = strLabel & ":"
+            End If
+        Case Else
+            strLabel = strLabel & key
     End Select
-    
     lblTime.Caption = strLabel
     lblTime.Tag = strLabel & IIf(strLabel = "", "", ":00")
-End Sub
-
-Private Sub btn0_Click()
-    Call subKeyClick("0")
-End Sub
-
-Private Sub btn0_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
-    Call subKeyClick("0")
-End Sub
-
-Private Sub btn1_Click()
-    Call subKeyClick("1")
-End Sub
-Private Sub btn1_DblClick(ByVal Cancel As MSForms.ReturnBoolean)
-    Call subKeyClick("1")
+    Exit Sub
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmDateTime.subKeyClick: " & Err.Number & " - " & Err.Description
+    Call MsgBox("テンキー入力処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
 Private Sub btn2_Click()

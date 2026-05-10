@@ -28,13 +28,19 @@ End Function
 '
 Public Function GetConveyorListWithLogic() As Object
     On Error GoTo ErrorHandler
-    Dim rsRaw As Object: Set rsRaw = Bas_DaoConveyor.GetConveyorList()
-    Dim rsResult As Object: Set rsResult = CreateObject("ADODB.Recordset")
+
+    Dim rsRaw As Object
+    Set rsRaw = Bas_DaoConveyor.GetConveyorList()
+
+    Dim rsResult As Object
+    Set rsResult = CreateObject("ADODB.Recordset")
+
     ' フィールド定義
     rsResult.Fields.Append "工程", 200, 32 ' AD_VAR_CHAR = 200
     rsResult.Fields.Append "No", 3 ' AD_INTEGER = 3
     rsResult.Fields.Append "名称", 200, 64
     rsResult.Open
+
     If Not rsRaw Is Nothing Then
         Do While Not rsRaw.EOF
             ' 例：名称が空欄でないものだけ返す
@@ -48,8 +54,11 @@ Public Function GetConveyorListWithLogic() As Object
             rsRaw.MoveNext
         Loop
     End If
+
     Set GetConveyorListWithLogic = rsResult
+
     Exit Function
+    
 ErrorHandler:
     Set GetConveyorListWithLogic = Nothing
 End Function

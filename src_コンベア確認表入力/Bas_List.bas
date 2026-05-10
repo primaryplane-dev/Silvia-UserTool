@@ -1,144 +1,147 @@
 Attribute VB_Name = "Bas_List"
 Option Explicit
-
-Public Sub subMain()
-    Call subBeforeEdit
-    Call subEditList
-    Call subEditList2
-    Call subAfterEdit
-End Sub
-
-Public Sub subMain2()
-    Call subBeforeEdit
-    Call subEditList2
-    Call subAfterEdit
-End Sub
-
-Private Sub subInitialize()
-    stHina.Cells.Copy stList.Cells
-    ' ビスケット備品入力同様、初期状態の不要行を削除して詰める
-    stList.Range("12:16").Delete
-    stList.Select
-End Sub
-
-' マスタデータ (SBFP01) の読み込みと画面構築
-Private Sub subEditList()
-    Dim ST          As Worksheet: Set ST = stList
-    Dim CN          As New ADODB.Connection
-    Dim RS          As New ADODB.Recordset
-    Dim strSQL      As String
-    Dim lRow        As Long
-    Dim startRow    As Long
-    Dim strKey      As String
-    Dim vKTCD       As Variant
-    Dim vCVNM       As Variant
-    
-    '雛型シート→編集シート
-    Call subInitialize
-    
-    '見出しセット
-    ST.Cells(1, 2) = "コンベアチェック表(" & IIf(P_ChkKBN = 1, "成型)", "冷却)")
-    ST.Cells(4, 5) = Format(P_DATE, "yyyy年m月d日")
-    ST.Cells(4, 8) = IIf(P_KJNO = "", P_HINM, P_KJNO & " " & P_KJNM)
-    ST.Cells(6, 8) = P_SYNM
-    ST.Cells(4, CL_SY) = Format(P_SYCD, "00000000")
-    ST.Cells(1, 7) = "製造中"
-    stList.cmdNew.Enabled = True
-    
-    'ＤＢ接続
-    CN.CursorLocation = adUseClient
-    CN.Open P_ConnectString
-    
-    '----------------------------------------------------------------
-    ' 1. SBFP01読込 (コンベア名称マスタ)
-    '----------------------------------------------------------------
-    strSQL = ""
-    strSQL = strSQL & "SELECT "
-    strSQL = strSQL & "   BFKTCD "
-    strSQL = strSQL & "  ,BFCVNO "
-    strSQL = strSQL & "  ,BFCVNM "
-    strSQL = strSQL & "  FROM LIBSMF17.SBFP01 "
-    strSQL = strSQL & " WHERE BFDELT = '' "
-    
-    ' 工程区分絞り込み
-    If P_ChkKBN = 1 Then
-        strSQL = strSQL & "   AND INT(BFKTCD) >= 1 AND INT(BFKTCD) <= 20 "
-    ElseIf P_ChkKBN = 2 Then
-        strSQL = strSQL & "   AND INT(BFKTCD) >= 21 "
-    End If
-    
-    strSQL = strSQL & " ORDER BY BFKTCD, BFCVNO "
-    
-    RS.Open strSQL, CN, adOpenForwardOnly, adLockReadOnly
-    
-    lRow = RW_FR '11行目から開始
-    Do While Not RS.EOF
-        vKTCD = RS("BFKTCD") & ""
-        vCVNM = RS("BFCVNM") & ""
-        
-        ' 雛型(stHina)のRW_FR行目の書式をコピー
-        stHina.Range(stHina.Cells(RW_FR, 1), stHina.Cells(RW_FR, 17)).Copy ST.Cells(lRow, 1)
-        
-        ' 列セット (ビスケット備品入力のレイアウトに準拠)
-        ST.Cells(lRow, 2) = fncGetKTNM(CStr(vKTCD)) '工程名
-        ST.Cells(lRow, 3) = vKTCD                   '工程CD(隠し)
-        ST.Cells(lRow, 4) = CStr(RS("BFCVNO"))      'No
-        ST.Cells(lRow, 5) = vCVNM                   '名称
-        ST.Cells(lRow, 6) = ""                      '頻度(SBFP01には無いので空欄)
-        
-        lRow = lRow + 1
-        RS.MoveNext
-    Loop
-    RS.Close
-    
-    ' フッター行の位置を決定
-    P_SGRow = lRow
-    P_KRRow = lRow + 2
-    P_BKRow = lRow + 4
-    
-    ' 作業者、管理者、備考欄を挿入 (雛型の12～16行目をコピー)
-    stHina.Range(stHina.Cells(12, 1), stHina.Cells(16, 17)).Copy ST.Cells(P_SGRow, 1)
-    ST.Rows(P_SGRow + 1).Hidden = True
-    ST.Rows(P_KRRow + 1).Hidden = True
-    
-    ' 工程名のマージ処理
-    Application.DisplayAlerts = False
-    strKey = "": startRow = RW_FR
-    For lRow = RW_FR To P_SGRow - 1
-        If Not strKey = ST.Cells(lRow, 3) Then
-            If Not strKey = "" Then
-                ST.Range(ST.Cells(startRow, 2), ST.Cells(lRow - 1, 2)).Merge
-            End If
-            startRow = lRow
-            strKey = ST.Cells(lRow, 3)
-        End If
-    Next
-    If Not strKey = "" Then
-        ST.Range(ST.Cells(startRow, 2), ST.Cells(P_SGRow - 1, 2)).Merge
-    End If
-    Application.DisplayAlerts = True
-    
-    ' 罫線
-    ST.Range(ST.Cells(RW_FR, 2), ST.Cells(P_BKRow, 16)).Borders.LineStyle = xlContinuous
-    
-    ' stWork初期化
-    stWork.Cells.ClearContents
-    
-    '----------------------------------------------------------------
-    ' 2. SBGP01読込 (実績データ)
-    '----------------------------------------------------------------
-    strSQL = ""
-    strSQL = strSQL & "SELECT BG.* "
-    strSQL = strSQL & "     , CASE WHEN COALESCE(TS1.TSSYKJ,'')='' THEN VA1.VASYKJ ELSE COALESCE(TS1.TSSYKJ,'') END AS SYKJ "
-    strSQL = strSQL & "     , CASE WHEN COALESCE(TS2.TSSYKJ,'')='' THEN VA2.VASYKJ ELSE COALESCE(TS2.TSSYKJ,'') END AS KKSYKJ "
-    strSQL = strSQL & "  FROM LIBSMF17.SBGP01 AS BG "
-    
-    ' 結合条件はビスケット備品入力と同じロジックを使用
-    strSQL = strSQL & "  LEFT JOIN LIBSMF17.STSP01 AS TS1 ON TS1.TSDELT = '' AND TS1.TSSYCD = BG.BGSGCD AND TS1.TSTTKB = '1' "
-    strSQL = strSQL & "  LEFT JOIN LIBBMF.BVAP01 AS VA1 ON VA1.VAKYUK = '' AND VA1.VASYCD = BG.BGSGCD "
-    strSQL = strSQL & "  LEFT JOIN LIBSMF17.STSP01 AS TS2 ON TS2.TSDELT = '' AND TS2.TSSYCD = BG.BGCHKK AND TS2.TSTTKB = '4' "
-    strSQL = strSQL & "  LEFT JOIN LIBBMF.BVAP01 AS VA2 ON VA2.VAKYUK = '' AND VA2.VASYCD = BG.BGCHKK "
-    
+'' =============================
+'' このモジュールは不要のため、全体をコメントアウトして残しています。
+'' =============================
+'Attribute VB_Name = "Bas_List"
+'Option Explicit
+'
+'Public Sub subMain()
+'    Call subBeforeEdit
+'    Call subEditList
+'    Call subEditList2
+'    Call subAfterEdit
+'End Sub
+'
+'Public Sub subMain2()
+'    Call subBeforeEdit
+'    Call subEditList2
+'    Call subAfterEdit
+'End Sub
+'
+'Private Sub subInitialize()
+'    stHina.Cells.Copy stList.Cells
+'    ' ビスケット備品入力同様、初期状態の不要行を削除して詰める
+'    stList.Range("12:16").Delete
+'    stList.Select
+'End Sub
+'
+'' マスタデータ (SBFP01) の読み込みと画面構築
+'Private Sub subEditList()
+'    Dim ST          As Worksheet: Set ST = stList
+'    Dim CN          As New ADODB.Connection
+'    Dim RS          As New ADODB.Recordset
+'    Dim strSQL      As String
+'    Dim lRow        As Long
+'    Dim startRow    As Long
+'    Dim strKey      As String
+'    Dim vKTCD       As Variant
+'    Dim vCVNM       As Variant
+'    
+'    '雛型シート→編集シート
+'    Call subInitialize
+'    
+'    '見出しセット
+'    ST.Cells(1, 2) = "コンベアチェック表(" & IIf(P_ChkKBN = 1, "成型)", "冷却)")
+'    ST.Cells(4, 5) = Format(P_DATE, "yyyy年m月d日")
+'    ST.Cells(4, 8) = IIf(P_KJNO = "", P_HINM, P_KJNO & " " & P_KJNM)
+'    ST.Cells(6, 8) = P_SYNM
+'    ST.Cells(4, CL_SY) = Format(P_SYCD, "00000000")
+'    ST.Cells(1, 7) = "製造中"
+'    stList.cmdNew.Enabled = True
+'    
+'    'ＤＢ接続
+'    CN.CursorLocation = adUseClient
+'    CN.Open P_ConnectString
+'    
+'    '----------------------------------------------------------------
+'    ' 1. SBFP01読込 (コンベア名称マスタ)
+'    '----------------------------------------------------------------
+'    strSQL = ""
+'    strSQL = strSQL & "SELECT "
+'    strSQL = strSQL & "   BFKTCD "
+'    strSQL = strSQL & "  ,BFCVNO "
+'    strSQL = strSQL & "  ,BFCVNM "
+'    strSQL = strSQL & "  FROM LIBSMF17.SBFP01 "
+'    strSQL = strSQL & " WHERE BFDELT = '' "
+'    
+'    ' 工程区分絞り込み
+'    If P_ChkKBN = 1 Then
+'        strSQL = strSQL & "   AND INT(BFKTCD) >= 1 AND INT(BFKTCD) <= 20 "
+'    ElseIf P_ChkKBN = 2 Then
+'        strSQL = strSQL & "   AND INT(BFKTCD) >= 21 "
+'    End If
+'    
+'    strSQL = strSQL & " ORDER BY BFKTCD, BFCVNO "
+'    
+'    RS.Open strSQL, CN, adOpenForwardOnly, adLockReadOnly
+'    
+'    lRow = RW_FR '11行目から開始
+'    Do While Not RS.EOF
+'        /* Lines 76-90 omitted */
+'        RS.MoveNext
+'    Loop
+'    RS.Close
+'    
+'    ' フッター行の位置を決定
+'    P_SGRow = lRow
+'    P_KRRow = lRow + 2
+'    P_BKRow = lRow + 4
+'    
+'    ' 作業者、管理者、備考欄を挿入 (雛型の12～16行目をコピー)
+'    stHina.Range(stHina.Cells(12, 1), stHina.Cells(16, 17)).Copy ST.Cells(P_SGRow, 1)
+'    ST.Rows(P_SGRow + 1).Hidden = True
+'    ST.Rows(P_KRRow + 1).Hidden = True
+'    
+'    ' 工程名のマージ処理
+'    Application.DisplayAlerts = False
+'    strKey = "": startRow = RW_FR
+'    For lRow = RW_FR To P_SGRow - 1
+'        /* Lines 108-114 omitted */
+'        End If
+'    Next
+'    If Not strKey = "" Then
+'        ST.Range(ST.Cells(startRow, 2), ST.Cells(P_SGRow - 1, 2)).Merge
+'    End If
+'    Application.DisplayAlerts = True
+'    
+'    ' 罫線
+'    ST.Range(ST.Cells(RW_FR, 2), ST.Cells(P_BKRow, 16)).Borders.LineStyle = xlContinuous
+'    
+'    ' stWork初期化
+'    stWork.Cells.ClearContents
+'    
+'    '----------------------------------------------------------------
+'    ' 2. SBGP01読込 (実績データ)
+'    '----------------------------------------------------------------
+'    strSQL = ""
+'    strSQL = strSQL & "SELECT BG.* "
+'    strSQL = strSQL & "     , CASE WHEN COALESCE(TS1.TSSYKJ,'')='' THEN VA1.VASYKJ ELSE COALESCE(TS1.TSSYKJ,'') END AS SYKJ "
+'    strSQL = strSQL & "     , CASE WHEN COALESCE(TS2.TSSYKJ,'')='' THEN VA2.VASYKJ ELSE COALESCE(TS2.TSSYKJ,'') END AS KKSYKJ "
+'    strSQL = strSQL & "  FROM LIBSMF17.SBGP01 AS BG "
+'    
+'    ' 結合条件はビスケット備品入力と同じロジックを使用
+'    strSQL = strSQL & "  LEFT JOIN LIBSMF17.STSP01 AS TS1 ON TS1.TSDELT = '' AND TS1.TSSYCD = BG.BGSGCD AND TS1.TSTTKB = '1' "
+'    strSQL = strSQL & "  LEFT JOIN LIBBMF.BVAP01 AS VA1 ON VA1.VAKYUK = '' AND VA1.VASYCD = BG.BGSGCD "
+'    /* Lines 139-225 omitted */
+'    Set ST = Nothing
+'End Sub
+'
+'Private Sub subEditList2()
+'    /* Lines 229-322 omitted */    
+'    
+'End Sub
+'
+'Private Function fncFindRow(ByVal KTCD As String, ByVal CVNO As Long) As Long
+'    /* Lines 326-340 omitted */
+'    Set ST = Nothing
+'End Function
+'
+'' 工程CD→名称変換 (簡易版)
+'Public Function fncGetKTNM(ByVal KTCD As String) As String
+'    /* Lines 345-349 omitted */
+'    End Select
+'End Function
     strSQL = strSQL & " WHERE BG.BGDELT = '' "
     strSQL = strSQL & "   AND BG.BGSDAT = " & Val(Format(P_DATE, "yyyymmdd"))
     strSQL = strSQL & "   AND BG.BGHINO = " & Val(P_HINO)

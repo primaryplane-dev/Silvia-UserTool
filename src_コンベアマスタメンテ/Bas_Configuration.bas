@@ -52,7 +52,7 @@ Public Function GetConnectionString() As String
 
     Exit Function
 
-    ErrorHandler:
+ErrorHandler:
     Call MsgBox("システムの接続設定の読み込みに失敗しました。管理者へ連絡してください。", vbCritical, SYSTEM_NAME)
     GetConnectionString = ""
 End Function

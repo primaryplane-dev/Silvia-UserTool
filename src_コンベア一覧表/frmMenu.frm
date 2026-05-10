@@ -13,114 +13,172 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+'/**
+' * @file frmMenu.frm
+' * @brief 条件指定メニュー画面 (UI 層)
+' * @note ユーザーによる条件指定・商品選択・メイン処理呼び出しを担当
+' */
+
 Option Explicit
 
-' ==============================================================================
-' フォーム初期化
-' ==============================================================================
+'/**
+' * @brief フォーム初期化処理
+' */
 Private Sub UserForm_Initialize()
+    On Error GoTo ErrorHandler
+
     ' 日付の初期値をセット
     Me.txtDate.Value = Format(Date, "yyyy/mm/dd")
-    
+
     ' 区分（デフォルトで「成型」を選んだ状態にする）
     Me.optSeikei.Value = True
-    
+
     ' 商品名コンボボックスの設定（3列：商品名, 日番号, ラインNo）
     With Me.cmbHinm
         .ColumnCount = 3
         .ColumnWidths = "100pt;0pt;0pt" ' 2列目以降は隠す
         .Style = fmStyleDropDownList    ' 手入力禁止
     End With
-    
+
     ' 初期日付でリストを作成
     Call subMakeComboHINM
+
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmMenu.UserForm_Initialize: " & Err.Number & " - " & Err.Description
+    Call MsgBox("画面初期化中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
-' ==============================================================================
-' 実行ボタン
-' ==============================================================================
+'/**
+' * @brief 実行ボタン押下時の処理
+' */
 Private Sub cmdRun_Click()
+    On Error GoTo ErrorHandler
+
     ' 1. 入力チェック
     If Not IsDate(Me.txtDate.Value) Then
-        MsgBox "正しい日付を入力してください。", vbExclamation
+        Call MsgBox("正しい日付を入力してください。", vbExclamation, Bas_Configuration.SYSTEM_NAME)
         Me.txtDate.SetFocus
         Exit Sub
     End If
-    
     If Me.cmbHinm.Value = "" Or Me.cmbHinm.Value = "該当データなし" Or Me.cmbHinm.Value = "SQLエラー" Then
-        MsgBox "有効な商品名を選択してください。" & vbCrLf & "（データが存在しない日付では実行できません）", vbExclamation
+        Call MsgBox("有効な商品名を選択してください。" & vbCrLf & "（データが存在しない日付では実行できません）", vbExclamation, Bas_Configuration.SYSTEM_NAME)
         Me.cmbHinm.SetFocus
         Exit Sub
     End If
-    
 
     ' 2. 標準モジュールのパブリック変数に値をセット
     P_DATE = CDate(Me.txtDate.Value)
-    
+
     ' 商品名、日番号、ラインNoを取得
     P_HINM = Me.cmbHinm.List(Me.cmbHinm.ListIndex, 0) & ""
     P_HINO = Me.cmbHinm.List(Me.cmbHinm.ListIndex, 1) & ""
     P_KJNO = Me.cmbHinm.List(Me.cmbHinm.ListIndex, 2) & ""
-    
+
     ' 区分判定
     If Me.optReikyaku.Value = True Then
         P_ChkKBN = 2 ' 冷却
     Else
         P_ChkKBN = 1 ' 成型
     End If
-    
+
     ' 3. メイン処理の呼び出し
     Me.Hide
     DoEvents
-    
     Call subMain  ' 標準モジュールのメイン処理を実行
-    
+
     ' 4. 処理終了後にフォームを閉じる
     Unload Me
+
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmMenu.cmdRun_Click: " & Err.Number & " - " & Err.Description
+    Call MsgBox("実行処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
-' キャンセルボタン
+'/**
+' * @brief キャンセルボタン押下時の処理
+' */
 Private Sub cmdCancel_Click()
+    On Error GoTo ErrorHandler
+
     Unload Me
+
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmMenu.cmdCancel_Click: " & Err.Number & " - " & Err.Description
+    Call MsgBox("キャンセル処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
-' ==============================================================================
-' カレンダー・日付関連
-' ==============================================================================
+'/**
+' * @brief カレンダーボタン押下時の処理
+' */
 Private Sub cmdCalD_Click()
+    On Error GoTo ErrorHandler
+
     Call subOpenCalendar
-    
     ' カレンダーで日付が選択された場合のみ更新
     If P_CalendarSelected Then
         Me.txtDate.Value = Format(P_calDATE, "yyyy/mm/dd")
         ' 日付が変わったので商品リストを再取得
         Call subMakeComboHINM
     End If
+
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmMenu.cmdCalD_Click: " & Err.Number & " - " & Err.Description
+    Call MsgBox("カレンダー処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
+'/**
+' * @brief カレンダー画面の表示
+' */
 Private Sub subOpenCalendar()
+    On Error GoTo ErrorHandler
+
     P_CalendarSelected = False
     Dim obj As New frmCalendar
     obj.Show
     Set obj = Nothing
+
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmMenu.subOpenCalendar: " & Err.Number & " - " & Err.Description
+    Call MsgBox("カレンダー表示中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
-' 日付を手入力してEnter等で抜けた時にリスト更新
+'/**
+' * @brief 日付手入力時のリスト更新
+' */
 Private Sub txtDate_BeforeUpdate(ByVal Cancel As MSForms.ReturnBoolean)
+    On Error GoTo ErrorHandler
+
     If IsDate(Me.txtDate.Value) Then
         Call subMakeComboHINM
     End If
+
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmMenu.txtDate_BeforeUpdate: " & Err.Number & " - " & Err.Description
+    Call MsgBox("日付入力処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
-' ==============================================================================
-' DBからその日の商品リストを取得する処理
-' ==============================================================================
+'/**
+' * @brief DBからその日の商品リストを取得する処理
+' */
 Private Sub subMakeComboHINM()
-    Dim CN As Object
-    ' コンボボックスをクリア
+    On Error GoTo ErrorHandler
+
     Me.cmbHinm.Clear
     ' 日付が不正なら終了
     If Not IsDate(Me.txtDate.Value) Then Exit Sub
+
     Dim yyyymmdd As String
     yyyymmdd = Format(Me.txtDate.Value, "yyyymmdd")
     Dim RS As Object
@@ -145,8 +203,10 @@ Private Sub subMakeComboHINM()
     End If
     RS.Close
     Set RS = Nothing
-    Exit Sub
 
-ErrConnect:
-    MsgBox "DB接続に失敗しました。" & vbCrLf & Err.Description, vbCritical
+    Exit Sub
+    
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmMenu.subMakeComboHINM: " & Err.Number & " - " & Err.Description
+    Call MsgBox("商品リスト取得処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub

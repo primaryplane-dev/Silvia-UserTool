@@ -13,11 +13,23 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
+'/**
+' * @file frmTenKey.frm
+' * @brief 数値パッドフォーム (UI 層)
+' * @note ユーザー数値入力の受け付けと、値の返却のみを行う
+' */
 Option Explicit
 
 Private ClearFLG    As Boolean
 
+
+'/**
+' * @brief OKボタン押下時の処理
+' */
 Private Sub btnOk_Click()
+    On Error GoTo ErrorHandler
+
     Dim strMSG      As String
     
     '入力チェック
@@ -25,20 +37,35 @@ Private Sub btnOk_Click()
         If lblInputValue.Caption = "" Then Exit Sub
     End If
     strMSG = CheckKeta(lblInputValue.Caption)
-    If strMSG <> "" Then Call MsgBox(strMSG): Exit Sub
-    
-   
+    If strMSG <> "" Then
+        Call MsgBox(strMSG, vbExclamation, Bas_Configuration.SYSTEM_NAME)
+        Exit Sub
+    End If
     P_TenKeyData = lblInputValue.Caption
     P_TenKey_FLG = True
     Unload Me
+
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmTenKey.btnOk_Click: " & Err.Number & " - " & Err.Description
+    Call MsgBox("OKボタン処理でエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
+
+'/**
+' * @brief 入力値の桁数チェック
+' * @param i_Val 入力値
+' * @return String エラーメッセージ（正常時は空文字）
+' */
 Private Function CheckKeta(ByVal i_Val As String) As String
+    On Error GoTo ErrorHandler
+
     CheckKeta = ""
     If i_Val = "" Then Exit Function
+    
     'マイナスは桁に入れない
     Dim strWK   As String:  strWK = Replace(i_Val, "-", "")
-
     If P_TenKeyPointMode = 0 Then
         '正の整数のみの場合
         If Len(strWK) > P_TenKeyKeta Then CheckKeta = P_TenKeyKeta & "桁以内で入力してください"
@@ -55,9 +82,21 @@ Private Function CheckKeta(ByVal i_Val As String) As String
             If Len(varWK(1)) > 2 Then CheckKeta = "小数部は２桁以内で入力してください"
         End If
     End If
+
+    Exit Function
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmTenKey.CheckKeta: " & Err.Number & " - " & Err.Description
+    CheckKeta = "桁数チェック処理でエラーが発生しました。"
 End Function
 
+
+'/**
+' * @brief フォーム初期化処理
+' */
 Private Sub UserForm_Initialize()
+    On Error GoTo ErrorHandler
+
     lblInputValue.Caption = P_TenKeyData
     P_TenKey_FLG = False
     P_TEdit_FLG = False
@@ -79,17 +118,37 @@ Private Sub UserForm_Initialize()
         btnC.Width = 78
         btn0.Width = 156:   btn0.Left = 84
     End If
-'    Me.StartUpPosition = 0
-'    Me.Left = 640:  Me.Top = 50
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmTenKey.UserForm_Initialize: " & Err.Number & " - " & Err.Description
+    Call MsgBox("初期化処理でエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
+
+'/**
+' * @brief キャンセルボタン押下時の処理
+' */
 Private Sub btnCancel_Click()
+    On Error GoTo ErrorHandler
+
     Unload Me
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmTenKey.btnCancel_Click: " & Err.Number & " - " & Err.Description
+    Call MsgBox("キャンセル処理でエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
+
+'/**
+' * @brief テンキー入力処理
+' * @param key 入力キー
+' */
 Private Sub subTenKeyClick(ByVal key As String)
+    On Error GoTo ErrorHandler
+
     Dim strLabel As String
-    
     If Not P_TEdit_FLG Then
         strLabel = ""
         P_TEdit_FLG = True
@@ -97,29 +156,30 @@ Private Sub subTenKeyClick(ByVal key As String)
         strLabel = lblInputValue.Caption
     End If
     Select Case key
-    Case "C"
-        strLabel = "":  ClearFLG = True
-    Case "-"
-        If InStr(strLabel, "-") > 0 Then
-            strLabel = Replace(strLabel, "-", "")
-        Else
-            strLabel = "-" & strLabel
-        End If
-    Case "."
-'        If InStr(1, strLabel, ".") = 0 Then
-        Select Case strLabel
-            Case ""
-                strLabel = "0."
-            Case Else
-                strLabel = strLabel & "."
-        End Select
-'        End If
-    Case Else
-        strLabel = strLabel & key
+        Case "C"
+            strLabel = "":  ClearFLG = True
+        Case "-"
+            If InStr(strLabel, "-") > 0 Then
+                strLabel = Replace(strLabel, "-", "")
+            Else
+                strLabel = "-" & strLabel
+            End If
+        Case "."
+            Select Case strLabel
+                Case ""
+                    strLabel = "0."
+                Case Else
+                    strLabel = strLabel & "."
+            End Select
+        Case Else
+            strLabel = strLabel & key
     End Select
-    
     lblInputValue.Caption = strLabel
-
+    Exit Sub
+    
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmTenKey.subTenKeyClick: " & Err.Number & " - " & Err.Description
+    Call MsgBox("テンキー入力処理でエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
 '------------------------------------------------------------------------------------------------

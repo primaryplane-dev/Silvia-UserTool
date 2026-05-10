@@ -10,14 +10,21 @@ Option Explicit
 '' コンベア一覧取得（SBFP01テーブル）
 Public Function GetConveyorList() As Object
     On Error GoTo ErrorHandler
+
     Dim objResult As Object
     Set objResult = CreateObject("ADODB.Recordset")
-    Dim CN As Object: Set CN = Bas_DbConnection.GetConnection()
+
+    Dim CN As Object
+    Set CN = Bas_DbConnection.GetConnection()
+
     Dim strSQL As String
     strSQL = "SELECT BFKTCD, BFCVNO, BFCVNM FROM LIBSMF17.SBFP01 WHERE BFDELT='' ORDER BY BFKTCD, BFCVNO"
+
     objResult.Open strSQL, CN, 3, 1 ' adOpenStatic=3, adLockReadOnly=1
     Set GetConveyorList = objResult
+
     Exit Function
+
 ErrorHandler:
     Set GetConveyorList = Nothing
 End Function
@@ -31,7 +38,10 @@ End Function
 ' */
 Public Sub UpdateConveyorList(ByVal stList As Object, ByVal stWork As Object, ByVal RW_FR As Long)
     On Error GoTo ErrorHandler
-    Dim CN As Object: Set CN = Bas_DbConnection.GetConnection()
+
+    Dim CN As Object
+    Set CN = Bas_DbConnection.GetConnection()
+
     Dim strSQL As String
     Dim lResult As Long
     Dim lRow As Long
@@ -106,6 +116,7 @@ Public Sub UpdateConveyorList(ByVal stList As Object, ByVal stWork As Object, By
 
     CN.Close: Set CN = Nothing
     Exit Sub
+    
 ErrorHandler:
     If Not CN Is Nothing Then CN.Close: Set CN = Nothing
     Call MsgBox("コンベア情報の更新処理でエラーが発生しました。管理者へ連絡してください。", vbCritical, SYSTEM_NAME)

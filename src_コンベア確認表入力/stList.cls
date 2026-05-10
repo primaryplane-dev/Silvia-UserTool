@@ -7,45 +7,75 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
+'''
+' * @file stList.cls
+' * @brief チェックリスト管理クラス (UI/ロジック層)
+' * @note チェックリストの操作・データ編集・画面連携を担当
+'''
 Option Explicit
 
-' ------------------------------------------------------------
-' 1. 条件選択ボタン
-' ------------------------------------------------------------
+
+'/**
+' * @brief 条件選択ボタン押下時の処理
+' * @note 担当者選択フォームを開き、選択結果を反映する
+' * @return なし
+' */
 Private Sub cmdSelect_Click()
+    On Error GoTo ErrorHandler
+
     If Me.Cells(1, CL_SY) = "1" Then
-        If MsgBox("保存されていませんが、よろしいですか？", vbOKCancel) = vbCancel Then Exit Sub
+        If MsgBox("保存されていませんが、よろしいですか？", vbOKCancel, Bas_Configuration.SYSTEM_NAME) = vbCancel Then Exit Sub
     End If
     Call subOpenSelect
     If P_Regist Then
-        ' 担当者名を表示
         Me.Cells(6, 8) = P_SYNM
         Me.Cells(4, CL_SY) = P_SYCD
         Call subMain
     End If
+
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] stList.cmdSelect_Click: " & Err.Number & " - " & Err.Description
+    Call MsgBox("条件選択処理でエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
+
+'/**
+' * @brief 条件選択フォームを開く
+' * @note frmSelectフォームをモーダルで表示
+' * @return なし
+' */
 Private Sub subOpenSelect()
+    On Error GoTo ErrorHandler
+
     Dim obj As New frmSelect
     obj.Show
     Set obj = Nothing
+
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] stList.subOpenSelect: " & Err.Number & " - " & Err.Description
+    Call MsgBox("条件選択フォーム呼び出しでエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
-' ------------------------------------------------------------
-' 2. 新規登録ボタン
-' ------------------------------------------------------------
+
+'/**
+' * @brief 新規登録ボタン押下時の処理
+' * @note チェックリストの新規データ追加。直前チェック未完了時は警告。
+' * @return なし
+' */
 Private Sub cmdNew_Click()
-    If P_SYCD = "" Or P_SYNM = "" Then MsgBox ("担当者を選択してください"): Exit Sub
-    If P_DATE = 0 Or (P_HINO = "" And P_KJNO = "") Then MsgBox ("生産日と品名を選択してください"): Exit Sub
+    On Error GoTo ErrorHandler
+
+    If P_SYCD = "" Or P_SYNM = "" Then Call MsgBox("担当者を選択してください", vbExclamation, Bas_Configuration.SYSTEM_NAME): Exit Sub
+    If P_DATE = 0 Or (P_HINO = "" And P_KJNO = "") Then Call MsgBox("生産日と品名を選択してください", vbExclamation, Bas_Configuration.SYSTEM_NAME): Exit Sub
     
     Dim lRow As Long, bEnd As Boolean
-    
-    ' 直近のチェックが完了しているか確認
     lRow = 1: bEnd = True
     Do While Not stWork.Cells(lRow, 1) = ""
-        ' タイミング S/M/E の行についてチェック
         If stWork.Cells(lRow, 12) = "S" Or stWork.Cells(lRow, 12) = "M" Or stWork.Cells(lRow, 12) = "E" Then
-            ' コンベアには頻度がないため、結果(6)または確認者(9)が空ならNG
             If stWork.Cells(lRow, 6) = "" Or stWork.Cells(lRow, 9) = "" Then
                 bEnd = False
                 Exit Do
@@ -55,23 +85,27 @@ Private Sub cmdNew_Click()
     Loop
     
     If Not bEnd Then
-        MsgBox ("前のチェックが完了していません"): Exit Sub
+        Call MsgBox("前のチェックが完了していません", vbExclamation, Bas_Configuration.SYSTEM_NAME): Exit Sub
     End If
-    
     P_DateTimeMode = 1
     Call subOpenDateTime
     If Not P_DateTime_FLG Then Exit Sub
-    
-    ' stWork にデータを追加
     Call subEditWorkList(Format(P_DateTime, "yyyymmddhhmmss"))
-    
-    ' 画面再描画
     Call subMain2
-    
-    ' 未保存フラグON
     Me.Cells(1, CL_SY) = "1"
+
+    Exit Sub
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] stList.cmdNew_Click: " & Err.Number & " - " & Err.Description
+    Call MsgBox("新規登録処理でエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
     
+'/**
+' * @brief 日時入力フォームを開く
+' * @note frmDateTimeフォームを表示し、日時入力を受け付ける
+' * @return なし
+' */
 Private Sub subOpenDateTime()
     Dim obj As New frmDateTime
     
@@ -86,11 +120,14 @@ Private Sub subOpenDateTime()
     Set obj = Nothing
 End Sub
 
-' ------------------------------------------------------------
-' 3. 製造終了ボタン
-' ------------------------------------------------------------
+'/**
+' * @brief 製造終了ボタン押下時の処理
+' * @note チェックリストの製造終了処理。未入力項目があれば警告。
+' * @return なし
+' */
 Private Sub cmdSEnd_Click()
     Dim lRow As Long, bEnd As Boolean
+    
     If Not Me.Cells(1, 7) = "製造中" Then Exit Sub
     
     If stWork.Cells(1, 1) = "" Then MsgBox ("データが未入力です"): Exit Sub
@@ -116,9 +153,11 @@ Private Sub cmdSEnd_Click()
     cmdNew.Enabled = False
 End Sub
 
-' ------------------------------------------------------------
-' 4. 担当者変更ボタン
-' ------------------------------------------------------------
+'/**
+' * @brief 担当者変更ボタン押下時の処理
+' * @note 担当者選択フォームを開き、担当者情報を反映
+' * @return なし
+' */
 Private Sub cmdSYCD_Click()
     If Me.Cells(1, CL_SY) = "1" Then
         If MsgBox("保存されていませんが、よろしいですか？", vbOKCancel) = vbCancel Then Exit Sub
@@ -130,15 +169,22 @@ Private Sub cmdSYCD_Click()
     Me.Cells(4, CL_SY) = P_SYCD
 End Sub
 
+'/**
+' * @brief 担当者選択フォームを開く
+' * @note frmSYCDフォームをモーダルで表示
+' * @return なし
+' */
 Private Sub subOpenSYCD()
     Dim obj As New frmSYCD
     obj.Show
     Set obj = Nothing
 End Sub
 
-' ------------------------------------------------------------
-' 5. 保存ボタン
-' ------------------------------------------------------------
+'/**
+' * @brief 保存ボタン押下時の処理
+' * @note 入力値検証後、チェックリストを保存
+' * @return なし
+' */
 Private Sub cmdSave_Click()
     If P_SYCD = "" Or P_SYNM = "" Then MsgBox ("担当者を選択してください"): Exit Sub
     If P_DATE = 0 Or (P_HINO = "" And P_KJNO = "") Then MsgBox ("生産日と品名を選択してください"): Exit Sub
@@ -147,9 +193,11 @@ Private Sub cmdSave_Click()
     Call subMain
 End Sub
 
-' ------------------------------------------------------------
-' 6. 閉じるボタン
-' ------------------------------------------------------------
+'/**
+' * @brief 閉じるボタン押下時の処理
+' * @note 保存確認後、ブックを閉じる
+' * @return なし
+' */
 Private Sub cmdEnd_Click()
     If Me.Cells(1, CL_SY) = "1" Then
         If MsgBox("保存されていませんが、よろしいですか？", vbOKCancel) = vbCancel Then Exit Sub
@@ -159,18 +207,31 @@ Private Sub cmdEnd_Click()
     Application.ThisWorkbook.Close False
 End Sub
 
+'/**
+' * @brief 上スクロールボタン押下時の処理
+' * @note 表示行を3行上にスクロール
+' * @return なし
+' */
 Private Sub cmdUp_Click()
     If ActiveWindow.ScrollRow < RW_FR Then Exit Sub
     ActiveWindow.ScrollRow = ActiveWindow.ScrollRow - 3
 End Sub
 
+'/**
+' * @brief 下スクロールボタン押下時の処理
+' * @note 表示行を3行下にスクロール
+' * @return なし
+' */
 Private Sub cmdDown_Click()
     ActiveWindow.ScrollRow = ActiveWindow.ScrollRow + 3
 End Sub
 
-' ------------------------------------------------------------
-' イベント: セル選択時 (入力・変更・削除)
-' ------------------------------------------------------------
+'/**
+' * @brief セル選択時のイベント
+' * @param Target 選択セル範囲
+' * @note 入力・編集・削除・管理者署名・備考編集等の分岐処理
+' * @return なし
+' */
 Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     ' クリック可能範囲の判定
     If Not ((Target.Row >= RW_FR - 3 And Target.Row <= P_BKRow) Or (Target.Row = 6 And 14 <= Target.Column And Target.Column <= 16) Or (Target.Row = 1 And Target.Column = 7)) Then Exit Sub
@@ -289,10 +350,12 @@ Exit_:
     Me.Cells(Target.Row, 5).Select
 End Sub
 
-' ------------------------------------------------------------
-' ★新規作成時のstWorkへのデータ追加処理
-'   (ビスケット備品入力と同じロジックで実装)
-' ------------------------------------------------------------
+'/**
+' * @brief stWorkへのデータ追加処理
+' * @param dateTime 追加する日時（yyyymmddhhmmss）
+' * @note 新規作成時にstListの内容をstWorkへ転記
+' * @return なし
+' */
 Private Sub subEditWorkList(ByVal dateTime As String)
     Dim lRow    As Long
     Dim lRow2   As Long
@@ -327,6 +390,14 @@ Private Sub subEditWorkList(ByVal dateTime As String)
 End Sub
 
 ' 時刻変更、データ削除
+'/**
+' * @brief 時刻変更・データ削除処理
+' * @param dateTime1 変更・削除対象日時
+' * @param dateTime2 変更後日時（mode=1時のみ）
+' * @param mode 1=時刻変更, 2=削除
+' * @note stWorkの該当行を更新または削除
+' * @return なし
+' */
 Private Sub subEditWorkList2(ByVal dateTime1 As String, ByVal dateTime2 As String, ByVal mode As Long)
     Dim lRow As Long
     lRow = 1
@@ -344,6 +415,17 @@ Private Sub subEditWorkList2(ByVal dateTime1 As String, ByVal dateTime2 As Strin
 End Sub
 
 ' チェック項目、備考欄、管理者の更新、製造終了切替
+'/**
+' * @brief チェック項目・備考欄・管理者の更新、製造終了切替
+' * @param dateTime 対象日時
+' * @param KTNO 工程CD
+' * @param CKNO No
+' * @param mode 1=チェック項目, 2=備考, 3=管理者, 4=製造終了
+' * @param strVal 更新値1
+' * @param strVal2 更新値2
+' * @note stWorkの該当行を更新
+' * @return なし
+' */
 Private Sub subEditWorkList3(ByVal dateTime As String, ByVal KTNO As String, ByVal CKNO As String, ByVal mode As Long, ByVal strVal As String, ByVal strVal2 As String)
     Dim lRow As Long
     lRow = 1
@@ -371,18 +453,34 @@ Private Sub subEditWorkList3(ByVal dateTime As String, ByVal KTNO As String, ByV
     Loop
 End Sub
 
+'/**
+' * @brief 選択リストフォームを開く
+' * @note frmSelectListフォームをモーダルで表示
+' * @return なし
+' */
 Private Sub subOpenSelectList()
     Dim obj As New frmSelectList
     obj.Show
     Set obj = Nothing
 End Sub
 
+'/**
+' * @brief 備考入力フォームを開く
+' * @note frmBIKOフォームをモーダルで表示
+' * @return なし
+' */
 Private Sub subOpenBIKO()
     Dim obj As New frmBIKO
     obj.Show
     Set obj = Nothing
 End Sub
 
+'/**
+' * @brief 権限チェック（管理者/品管/ライン長）
+' * @param i_KBN 権限区分
+' * @return String 権限がある場合は氏名、なければ空文字
+' * @note DBから該当権限の氏名を取得
+' */
 Private Function fncChkK(ByVal i_KBN As Long) As String
     Dim CN As New ADODB.Connection, RS As New ADODB.Recordset, strSQL As String
     fncChkK = ""

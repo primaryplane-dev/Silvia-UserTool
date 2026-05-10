@@ -26,12 +26,17 @@ Option Explicit
 ' */
 Private Sub UserForm_Initialize()
     On Error GoTo ErrorHandler
+
     P_CalendarSelected = False
+
     Call subMakeCombo
+
     If Not P_SHBU = "" Then
         cmbSHBU.Value = P_SHBU
     End If
+
     Exit Sub
+
 ErrorHandler:
     Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmSelectSHBU.UserForm_Initialize: " & Err.Number & " - " & Err.Description
     Call MsgBox("画面初期化中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
@@ -42,10 +47,13 @@ End Sub
 ' */
 Private Sub subMakeCombo()
     On Error GoTo ErrorHandler
+
     Dim arrItems As Variant
     arrItems = Bas_LogicConveyor.GetSHBUList()
     Bas_Utilities.FillComboBox cmbSHBU, arrItems
+
     Exit Sub
+
 ErrorHandler:
     Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmSelectSHBU.subMakeCombo: " & Err.Number & " - " & Err.Description
     Call MsgBox("支部リスト生成中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
@@ -56,12 +64,15 @@ End Sub
 ' */
 Private Sub cmdRegist_Click()
     On Error GoTo ErrorHandler
+
     If cmbSHBU.Text = "" Then Exit Sub
     P_SHBU = cmbSHBU.Value
     P_SHNM = cmbSHBU.Text
     P_CalendarSelected = True
     Unload Me
+
     Exit Sub
+
 ErrorHandler:
     Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmSelectSHBU.cmdRegist_Click: " & Err.Number & " - " & Err.Description
     Call MsgBox("登録処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
@@ -72,8 +83,11 @@ End Sub
 ' */
 Private Sub cmdCancel_Click()
     On Error GoTo ErrorHandler
+
     Unload Me
+
     Exit Sub
+    
 ErrorHandler:
     Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmSelectSHBU.cmdCancel_Click: " & Err.Number & " - " & Err.Description
     Call MsgBox("キャンセル処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
