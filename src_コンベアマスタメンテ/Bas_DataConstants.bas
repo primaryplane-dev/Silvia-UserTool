@@ -1,5 +1,6 @@
 Attribute VB_Name = "Bas_DataConstants"
 Option Explicit
+
 '/**
 ' * @file Bas_DataConstants.bas
 ' * @brief データアクセス関連の共有定数定義モジュール

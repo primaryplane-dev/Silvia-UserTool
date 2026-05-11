@@ -7,12 +7,13 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
+Option Explicit
+
 '/**
 ' * @file Result.cls
 ' * @brief ˆ—Œ‹‰ÊŠi”[—p DTO (Data Transfer Object)
 ' */
 
-Option Explicit
 
 '/** @brief ˆ—‚ª¬Œ÷‚µ‚½‚©‚Ç‚¤‚© */
 Public IsSuccess As Boolean

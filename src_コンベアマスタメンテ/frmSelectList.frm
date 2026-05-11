@@ -13,13 +13,25 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+Option Explicit
+
 '/**
 ' * @file frmSelectList.frm
 ' * @brief 選択リスト画面 (UI 層)
 ' * @note ユーザーによる項目選択と、選択結果の返却のみを担当
 ' */
 
-Option Explicit
+'×ボタンで閉じた場合もHideで破棄防止
+Private Sub UserForm_QueryClose(Cancel As Integer, CloseMode As Integer)
+    If CloseMode = vbFormControlMenu Then
+        Cancel = True
+        Me.Hide
+    End If
+End Sub
+
+
+Public P_Regist As Boolean
+Public P_SelItem As String
 
 '/**
 ' * @brief キャンセルボタン押下時の処理
@@ -27,7 +39,7 @@ Option Explicit
 Private Sub cmdCancel_Click()
     On Error GoTo ErrorHandler
 
-    Unload Me
+    Me.Hide
     Exit Sub
 
 ErrorHandler:
@@ -42,9 +54,9 @@ Private Sub lstItem_Click()
     On Error GoTo ErrorHandler
 
     If lstItem.ListIndex < 0 Then Exit Sub
-    P_SelItem = lstItem.List(lstItem.ListIndex)
-    P_Regist = True
-    Unload Me
+    Me.P_SelItem = lstItem.List(lstItem.ListIndex)
+    Me.P_Regist = True
+    Me.Hide
 
     Exit Sub
 
@@ -60,8 +72,16 @@ Private Sub UserForm_Initialize()
     On Error GoTo ErrorHandler
 
     Call subMakeList
-    P_SelItem = ""
-    P_Regist = False
+    Me.P_SelItem = ""
+    Me.P_Regist = False
+
+    ' リストボックスの選択可能設定を強制
+    With lstItem
+        .Enabled = True
+        .Locked = False
+        .ListStyle = fmListStylePlain ' 0
+        .MultiSelect = fmMultiSelectSingle ' 0
+    End With
 
     Exit Sub
 

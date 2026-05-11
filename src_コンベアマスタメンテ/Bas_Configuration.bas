@@ -1,10 +1,10 @@
 Attribute VB_Name = "Bas_Configuration"
+Option Explicit
+
 '/**
 ' * @file Bas_Configuration.bas
 ' * @brief 環境設定および共通定数管理モジュール
 ' */
-
-Option Explicit
 
 '/** @brief システム名 */
 Public Const SYSTEM_NAME As String = "コンベアマスタメンテシステム"

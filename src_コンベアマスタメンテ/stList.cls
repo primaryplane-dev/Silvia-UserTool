@@ -7,13 +7,18 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
+
+Option Explicit
+
+'▼ 選択フォームの結果受け渡し用
+Public P_Regist As Boolean
+Public P_SelItem As String
+
 '/**
 ' * @file stList.cls
 ' * @brief 工程リストシートモジュール (UI 層)
 ' * @note ユーザー操作の受付・入力チェック・保存・終了処理などを担当
 ' */
-
-Option Explicit
 
 '/**
 ' * @brief 選択ボタン押下時の処理
@@ -107,9 +112,16 @@ End Sub
 ' */
 Private Sub subOpen()
     On Error GoTo ErrorHandler
-    Dim obj As New frmSelectList
-    obj.Show
-    Set obj = Nothing
+    ' 既定インスタンスを利用
+    With frmSelectList
+        ' フォーム初期化時に値をリセット
+        .P_Regist = False
+        .P_SelItem = ""
+        .Show
+        ' 結果を受け取る
+        P_Regist = .P_Regist
+        P_SelItem = .P_SelItem
+    End With
     Exit Sub
 ErrorHandler:
     Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] stList.subOpen: " & Err.Number & " - " & Err.Description
