@@ -1,0 +1,59 @@
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "stList"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = True
+Option Explicit
+
+Private Sub cmdEnd_Click()
+    Me.Cells(1, 1).Copy
+    Application.CutCopyMode = False
+    Application.ThisWorkbook.Close False
+End Sub
+
+Private Sub cmdSelect_Click()
+    Call subOpen
+    If Not P_Regist Then Exit Sub
+    If P_DATEF = 0 And P_DATET = 0 Then Exit Sub
+    Call subMain
+End Sub
+
+Private Sub subOpen()
+    Dim obj As New frmSelect
+    obj.Show
+    Set obj = Nothing
+End Sub
+
+Private Sub Worksheet_BeforeDoubleClick(ByVal Target As Range, Cancel As Boolean)
+    If Target.Row < RW_FR Then Exit Sub
+    If Target.Column > 6 Then Exit Sub
+    If Me.Cells(Target.Row, 1) = "" Then Exit Sub
+    P_HINO = Me.Cells(Target.Row, 7)
+    P_KJNO = Me.Cells(Target.Row, 8)
+    P_HINM = Me.Cells(Target.Row, 3)
+    P_DATE = CDate(Me.Cells(Target.Row, 1))
+    If Me.Cells(Target.Row, 2) = "ビスケット分割重量" Then
+        P_SYCD = ""
+        P_SYNM = ""
+        Call subMain2
+    ElseIf Me.Cells(Target.Row, 2) = "コンベアチェック表" Then
+        P_SYCD = ""
+        P_SYNM = ""
+        Call subMain4
+    Else
+        If InStr(Me.Cells(Target.Row, 2), "備品チェック表") > 0 Then
+            P_SHBU = Me.Cells(Target.Row, 9)
+            P_KTCD = Me.Cells(Target.Row, 10)
+            P_SYCD = ""
+            P_SYNM = ""
+            Call subMain3
+        End If
+    End If
+    Cancel = True
+    
+End Sub
+
