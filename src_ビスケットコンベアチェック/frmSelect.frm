@@ -1,26 +1,21 @@
-VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmSelect 
-   Caption         =   "条件指定"
-   ClientHeight    =   6390
-   ClientLeft      =   45
-   ClientTop       =   330
-   ClientWidth     =   12765
-   OleObjectBlob   =   "frmSelect.frx":0000
-   StartUpPosition =   1  'オーナー フォームの中央
-End
-Attribute VB_Name = "frmSelect"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
 Option Explicit
 
 Private Sub UserForm_Initialize()
 '    Call subMakeCombo
     If Not P_DATE = 0 Then txtDate.Text = Format(P_DATE, "yyyy/mm/dd")
     If Not P_HINO = "" Then txtHINM.Tag = P_HINO: txtHINM.Text = P_HINM
-    If Not P_KJNO = "" Then cmbKJNM.Value = P_KJNO & "@" & P_KJNM
-    If Not P_SHBU = "" Then cmbSHBU.Value = P_SHBU
+    If P_KJNO <> "" Then
+        Dim targetKJ As String
+        Dim i As Integer
+        targetKJ = P_KJNO & "@" & P_KJNM
+        For i = 0 To cmbKJNM.ListCount - 1
+            If cmbKJNM.List(i, 0) = targetKJ Then
+                cmbKJNM.ListIndex = i
+                Exit For
+            End If
+        Next
+    End If
+    If P_SHBU <> "" Then cmbSHBU.Value = P_SHBU
     If P_ChkKBN = 1 Then
         optKT1.Value = True
     ElseIf P_ChkKBN = 2 Then
