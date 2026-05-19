@@ -1,12 +1,3 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "stList2"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = True
 Option Explicit
 
 Private Sub cmdSYCD_Click()
@@ -16,7 +7,8 @@ Private Sub cmdSYCD_Click()
 End Sub
 
 Private Sub subOpenSYCD()
-    Dim obj As New frmSYCD
+    Dim obj As frmSYCD
+    Set obj = New frmSYCD
     obj.Show
     Set obj = Nothing
 End Sub
@@ -32,7 +24,7 @@ Private Sub cmdBack_Click()
     If Not Me.Cells(6, 15) = "" Then
         If MsgBox("ï€ë∂Ç≥ÇÍÇƒÇ¢Ç‹ÇπÇÒÇ™ÅAÇÊÇÎÇµÇ¢Ç≈Ç∑Ç©ÅH", vbOKCancel) = vbCancel Then Exit Sub
     End If
-    Call subMain
+    Call subShowList
 End Sub
 
 Private Sub cmdUp_Click()

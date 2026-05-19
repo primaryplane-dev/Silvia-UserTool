@@ -16,14 +16,14 @@ Private Sub cmdSave_Click()
     If Me.Cells(1, 14) = "" Then Exit Sub
     If Me.Cells(5, 3) = "" Or Me.Cells(5, 5) = "" Then Exit Sub
     Call subUpdate4
-    Call subUpdateSheet
+    Call subPrepareEditSheet
 End Sub
 
 Private Sub cmdBack_Click()
     If Me.Cells(1, 14) = "1" Then
         If MsgBox("保存されていませんが、よろしいですか？", vbOKCancel) = vbCancel Then Exit Sub
     End If
-    Call subUpdateSheet
+    Call subMain5
 End Sub
 
 Private Sub cmdUp_Click()
@@ -41,7 +41,7 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     If Me.Cells(5, 3) = "" Or Me.Cells(5, 5) = "" Then Exit Sub
     If P_SYCD = "" Then MsgBox ("担当者を選択してください"): Exit Sub
     Dim strSYNM     As String
-    
+
     '最終確認者、品管、ライン長
     If Not Me.Cells(1, 4) = "製造終了" Then Exit Sub
     If Target.Column = 11 Then                              '最終確認者
@@ -64,7 +64,7 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     Me.Cells(9, 2).Select
 End Sub
 
-Private Sub subUpdateSheet()
+Private Sub subMain5()
     Me.Cells(1, 14) = "1"
     Me.Cells(9, 2).Select
 End Sub

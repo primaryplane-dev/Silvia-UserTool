@@ -1,4 +1,3 @@
-Attribute VB_Name = "Bas_List2"
 Option Explicit
 
 Public Sub subMain2()
@@ -14,8 +13,8 @@ End Sub
 
 Private Sub subEditList2()
     Dim ST          As Worksheet: Set ST = stList2
-    Dim CN          As New ADODB.Connection
-    Dim RS          As New ADODB.Recordset
+    Dim CN          As ADODB.Connection
+    Dim RS          As ADODB.Recordset
     Dim strSQL      As String
     Dim lRow        As Long
     Dim startRow    As Long
@@ -34,6 +33,7 @@ Private Sub subEditList2()
     ST.Cells(1, 8) = "ê∂éYèIóπ"
         
     'ÇcÇaê⁄ë±
+    Set CN = New ADODB.Connection
     CN.CursorLocation = adUseClient
     CN.Open P_ConnectString
     
@@ -77,6 +77,7 @@ Private Sub subEditList2()
     strSQL = strSQL & "   AND BA1.BAHINO=" & Val(P_HINO)
     strSQL = strSQL & "   AND BA1.BAKJNO='" & P_KJNO & "'"
     strSQL = strSQL & "ORDER BY TNTM, KRTM "
+    Set RS = New ADODB.Recordset
     RS.Open strSQL, CN, adOpenForwardOnly, adLockReadOnly
     lRow = 10
     strKey = "": Cnt = 0: startRow = 10

@@ -1,9 +1,8 @@
-Attribute VB_Name = "Bas_List"
 Option Explicit
 
 Public Const RW_FR = 4
 
-Public Sub subMain()
+Public Sub subDisplayList()
     Call subBeforeEdit
     Call subEditList
     Call subAfterEdit
@@ -16,8 +15,8 @@ End Sub
 
 Private Sub subEditList()
     Dim ST          As Worksheet: Set ST = stList
-    Dim CN          As New ADODB.Connection
-    Dim RS          As New ADODB.Recordset
+    Dim CN          As ADODB.Connection
+    Dim RS          As ADODB.Recordset
     Dim strSQL      As String
     Dim lRow        As Long
     Dim lCol        As Long
@@ -44,6 +43,7 @@ Private Sub subEditList()
     Call subInitialize
 
     'ＤＢ接続
+    Set CN = New ADODB.Connection
     CN.CursorLocation = adUseClient
     CN.Open P_ConnectString
     
@@ -59,7 +59,7 @@ Private Sub subEditList()
     strSQL = strSQL & "        ,BAHINO AS HINO "    '品番
     strSQL = strSQL & "        ,BAKJNO AS KJNO "    '生地番
     strSQL = strSQL & "        ,0      AS SHBU "    'アイテム種類
-    strSQL = strSQL & "        ,0      AS KTCD "    '工程コード
+    strSQL = strSQL & "        ,0      AS KTCD "    '工程コード（SBAP01は常に0）
     strSQL = strSQL & "    FROM LIBSMF17.SBAP01 "
     strSQL = strSQL & "   WHERE BADELT = ''"
     strSQL = strSQL & "     AND BADATE BETWEEN " & strFROM & " AND " & strTO
@@ -76,7 +76,7 @@ Private Sub subEditList()
     strSQL = strSQL & "        ,BEHINO AS HINO "    '品番
     strSQL = strSQL & "        ,BEKJNO AS KJNO "    '生地番
     strSQL = strSQL & "        ,BESHBU AS SHBU "    'アイテム種類
-    strSQL = strSQL & "        ,CASE WHEN BEKTCD <= 20 THEN 1 WHEN BEKTCD >= 21 THEN 2 END AS KTCD "    '工程コード
+    strSQL = strSQL & "        ,CASE WHEN BEKTCD <= 20 THEN 1 WHEN BEKTCD >= 21 THEN 2 END AS KTCD "    '工程コード（SBEP01）
     strSQL = strSQL & "    FROM LIBSMF17.SBEP01 "
     strSQL = strSQL & "   WHERE BEDELT = ''"
     strSQL = strSQL & "     AND BESDAT BETWEEN " & strFROM & " AND " & strTO
@@ -94,16 +94,29 @@ Private Sub subEditList()
     strSQL = strSQL & "        ,BGHINO AS HINO "    '品番
     strSQL = strSQL & "        ,BGKJNO AS KJNO "    '生地番
     strSQL = strSQL & "        ,0      AS SHBU "    'アイテム種類
-    strSQL = strSQL & "        ,0      AS KTCD "    '工程コード
+    strSQL = strSQL & "        ,BGKTCD AS KTCD "    '工程コード（SBGP01のみBGKTCD）
     strSQL = strSQL & "    FROM LIBSMF17.SBGP01 "
     strSQL = strSQL & "   WHERE BGDELT = ''"
     strSQL = strSQL & "     AND BGSDAT BETWEEN " & strFROM & " AND " & strTO
     strSQL = strSQL & "     AND (COALESCE(BGCHKL,0) = 0 OR COALESCE(BGCHKH,0) = 0 OR COALESCE(BGCHKS,0) = 0) "
     strSQL = strSQL & "     AND COALESCE(BGFNCD,'') = '1' "
     strSQL = strSQL & "   ORDER BY SDATE, KBN "
+    Set RS = New ADODB.Recordset
     RS.Open strSQL, CN, adOpenForwardOnly, adLockReadOnly
     lRow = RW_FR: strKey = ""
     Do While Not RS.EOF
+        ' Debug出力
+        Debug.Print "lRow=" & lRow & ", SDATE=" & RS("SDATE") & ", KBN=" & RS("KBN") & ", HINM=" & RS("HINM") & _
+            ", CHKL=" & RS("CHKL") & ", CHKH=" & RS("CHKH") & ", CHKS=" & RS("CHKS") & ", HINO=" & RS("HINO") & _
+            ", KJNO=" & RS("KJNO") & ", SHBU=" & RS("SHBU") & ", KTCD=" & RS("KTCD")
+        ' BGCVNOのNullチェック例（必要な場所に応じて挿入してください）
+        'Dim tmpCVNO As Variant
+        'tmpCVNO = RS("BGCVNO")
+        'If IsNull(tmpCVNO) Or tmpCVNO = "" Then
+        '    lRow = 0
+        'Else
+        '    lRow = fncFindRow(ST, CLng(tmpCVNO), lKTRow)
+        'End If
         lCol = 1: ST.Cells(lRow, lCol) = Left(RS("SDATE"), 4) & "/" & Mid(RS("SDATE"), 5, 2) & "/" & Right(RS("SDATE"), 2)
         lCol = lCol + 1: ST.Cells(lRow, lCol) = fncGetSHNM(CStr(RS("SHBU"))) & RS("KBN") & IIf(RS("KBN") = "備品チェック表", "(" & fncGetKTNM2(CStr(RS("KTCD"))) & ")", "")
         lCol = lCol + 1: ST.Cells(lRow, lCol) = RS("HINM")
@@ -134,4 +147,10 @@ Private Sub subEditList()
     
 End Sub
 
+Public Sub subMain4()
+    ' 必要な処理をここに記述
+End Sub
 
+Public Sub subMain3()
+    ' 必要な処理をここに記述
+End Sub

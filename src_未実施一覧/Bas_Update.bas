@@ -1,12 +1,12 @@
-Attribute VB_Name = "Bas_Update"
 Option Explicit
 
 Public Sub subUpdate2()
     Dim strSQL      As String
-    Dim CN          As New ADODB.Connection
+    Dim CN          As ADODB.Connection
     Dim lResult     As Long
 
     'ÇcÇaê⁄ë±
+    Set CN = New ADODB.Connection
     CN.CursorLocation = adUseClient
     CN.Open P_ConnectString
     'è≥îFÇÃÇ›
@@ -32,10 +32,11 @@ End Sub
 
 Public Sub subUpdate3()
     Dim strSQL      As String
-    Dim CN          As New ADODB.Connection
+    Dim CN          As ADODB.Connection
     Dim lResult     As Long
 
     'ÇcÇaê⁄ë±
+    Set CN = New ADODB.Connection
     CN.CursorLocation = adUseClient
     CN.Open P_ConnectString
     'è≥îFÇÃÇ›
@@ -67,29 +68,44 @@ End Sub
 
 Public Sub subUpdate4()
     Dim strSQL      As String
-    Dim CN          As New ADODB.Connection
+    Dim CN          As ADODB.Connection
     Dim lResult     As Long
+    Dim lTargetKTCD As Long
+    Dim ST          As Worksheet
+
+    lTargetKTCD = IIf(Val(P_KTCD) >= 21, 21, 1)
+    On Error Resume Next
+    If lTargetKTCD = 21 Then
+        Set ST = ThisWorkbook.Worksheets("stList5")
+    Else
+        Set ST = stList4
+    End If
+    On Error GoTo 0
+    If ST Is Nothing Then Set ST = stList4
 
     'ÇcÇaê⁄ë±
+    Set CN = New ADODB.Connection
     CN.CursorLocation = adUseClient
     CN.Open P_ConnectString
     'è≥îFÇÃÇ›
-    If stList4.Cells(1, 14) = "1" Then
+    If ST.Cells(1, 14) = "1" Then
         strSQL = ""
         strSQL = strSQL & "UPDATE LIBSMF17.SBGP01 SET"
         strSQL = strSQL & "      BGUUSR='" & P_SYCD & "'"
         strSQL = strSQL & "     ,BGUPGM='" & P_PGM & "'"
         strSQL = strSQL & "     ,BGUNTH = TO_CHAR(current timestamp, 'YYYYMMDD')"
         strSQL = strSQL & "     ,BGUTIM = TO_CHAR(current timestamp, 'HH24MISS')"
-        strSQL = strSQL & "     ,BGCHKL = " & Val(stList4.Cells(6, 13))
-        strSQL = strSQL & "     ,BGCHKH = " & Val(stList4.Cells(6, 12))
-        strSQL = strSQL & "     ,BGCHKS = " & Val(stList4.Cells(6, 11))
+        strSQL = strSQL & "     ,BGCHKL = " & Val(ST.Cells(6, 13))
+        strSQL = strSQL & "     ,BGCHKH = " & Val(ST.Cells(6, 12))
+        strSQL = strSQL & "     ,BGCHKS = " & Val(ST.Cells(6, 11))
         strSQL = strSQL & " WHERE BGDELT='' "
         strSQL = strSQL & "    AND BGSDAT=" & Val(Format(P_DATE, "yyyymmdd"))
         strSQL = strSQL & "    AND BGHINO='" & P_HINO & "'"
         strSQL = strSQL & "    AND BGKJNO='" & P_KJNO & "'"
+        strSQL = strSQL & "    AND BGKTCD=" & lTargetKTCD
         CN.Execute strSQL, lResult, &H80
     End If
     'ÇcÇaêÿíf
     CN.Close: Set CN = Nothing
+    Set ST = Nothing
 End Sub

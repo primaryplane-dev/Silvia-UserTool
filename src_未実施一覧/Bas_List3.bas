@@ -1,10 +1,36 @@
-Attribute VB_Name = "Bas_List3"
 Option Explicit
 
-Public Sub subMain3()
+Public Sub subProcessEditList()
     Call subBeforeEdit
-    Call subEditList3
+    Call subPerformEditList
     Call subAfterEdit
+End Sub
+
+Private Sub subPerformEditList()
+    Dim ST          As Worksheet: Set ST = stList3
+    Dim CN          As ADODB.Connection
+    Dim RS          As ADODB.Recordset
+    Dim strSQL      As String
+    Dim lRow        As Long
+    Dim startRow    As Long
+    Dim lCol        As Long
+    Dim lCol2       As Long
+    Dim bEnd        As Boolean
+    Dim strKey      As String
+    Dim Cnt         As Integer
+    Dim lEndRow     As Long
+    Dim lSGRow      As Long
+    Dim lKRRow      As Long
+    Dim lBKRow      As Long
+
+    '雛型シート→編集シート
+    Call subInitialize
+
+    '見だし
+    ST.Cells(1, 2) = fncGetSHNM(P_SHBU) & "備品チェック表(" & fncGetKTNM2(P_KTCD) & ")"
+    ST.Cells(4, 5) = Format(P_DATE, "yyyy年m月d日")
+    ST.Cells(4, 8) = P_HINM
+    ST.Cells(1, 7) = "製造終了"
 End Sub
 
 Private Sub subInitialize()
@@ -15,8 +41,8 @@ End Sub
 
 Private Sub subEditList3()
     Dim ST          As Worksheet: Set ST = stList3
-    Dim CN          As New ADODB.Connection
-    Dim RS          As New ADODB.Recordset
+    Dim CN          As ADODB.Connection
+    Dim RS          As ADODB.Recordset
     Dim strSQL      As String
     Dim lRow        As Long
     Dim startRow    As Long
@@ -40,6 +66,7 @@ Private Sub subEditList3()
     ST.Cells(1, 7) = "製造終了"
     
     'ＤＢ接続
+    Set CN = New ADODB.Connection
     CN.CursorLocation = adUseClient
     CN.Open P_ConnectString
     
@@ -60,6 +87,7 @@ Private Sub subEditList3()
     End If
     strSQL = strSQL & " ORDER BY BDKTCD, BDCKNO "
     
+    Set RS = New ADODB.Recordset
     RS.Open strSQL, CN, adOpenForwardOnly, adLockReadOnly
     
     lRow = 11
@@ -254,4 +282,9 @@ Private Function fncFindRow(ByVal KTCD As String, ByVal CKNO As Long) As Long
     
     Set ST = Nothing
 End Function
+
+Public Sub subShowList()
+    ' 必要な処理をここに記述
+    MsgBox "リストを表示します"
+End Sub
 

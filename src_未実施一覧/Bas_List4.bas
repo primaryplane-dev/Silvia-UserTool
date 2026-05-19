@@ -1,22 +1,62 @@
-Attribute VB_Name = "Bas_List4"
 Option Explicit
 
-Public Sub subMain4()
+Public Sub subPrepareEditSheet()
     Call subBeforeEdit
     Call subEditList4
     Call subAfterEdit
 End Sub
 
-Private Sub subInitialize()
-    stHina4.Cells.Copy stList4.Cells
-    stList4.Range("13:19").Delete
-    stList4.Select
+Private Function fncGetTargetKTCD() As Long
+    Dim lKTCD As Long
+
+    lKTCD = Val(P_KTCD)
+    If lKTCD >= 21 Then
+        fncGetTargetKTCD = 21
+    Else
+        fncGetTargetKTCD = 1
+    End If
+End Function
+
+Private Function fncGetTargetListSheet(ByVal lKTCD As Long) As Worksheet
+    On Error Resume Next
+    If lKTCD = 21 Then
+        Set fncGetTargetListSheet = stList5
+    Else
+        Set fncGetTargetListSheet = stList4
+    End If
+    On Error GoTo 0
+
+    If fncGetTargetListSheet Is Nothing Then
+        Set fncGetTargetListSheet = stList4
+    End If
+End Function
+
+Private Function fncGetTargetHinaSheet(ByVal lKTCD As Long) As Worksheet
+    On Error Resume Next
+    If lKTCD = 21 Then
+        Set fncGetTargetHinaSheet = stHina5
+    Else
+        Set fncGetTargetHinaSheet = stHina4
+    End If
+    On Error GoTo 0
+
+    If fncGetTargetHinaSheet Is Nothing Then
+        Set fncGetTargetHinaSheet = stHina4
+    End If
+End Function
+
+Private Sub subInitialize(ByVal ST As Worksheet, ByVal HN As Worksheet)
+    HN.Cells.Copy ST.Cells
+    ST.Range("13:19").Delete
+    ST.Select
 End Sub
 
 Private Sub subEditList4()
-    Dim ST          As Worksheet: Set ST = stList4
-    Dim CN          As New ADODB.Connection
-    Dim RS          As New ADODB.Recordset
+    Dim lTargetKTCD As Long
+    Dim ST          As Worksheet
+    Dim HN          As Worksheet
+    Dim CN          As ADODB.Connection
+    Dim RS          As ADODB.Recordset
     Dim strSQL      As String
     Dim lRow        As Long
     Dim startRow    As Long
@@ -30,9 +70,18 @@ Private Sub subEditList4()
     Dim lSGRow      As Long
     Dim lKRRow      As Long
     Dim lBKRow      As Long
+    Dim vCVNO       As Variant
+    Dim strDateYMD  As String
+    Dim strTimeHMM  As String
+    Dim strTimeHMS  As String
+    Dim strDateTime As String
+
+    lTargetKTCD = fncGetTargetKTCD()
+    Set ST = fncGetTargetListSheet(lTargetKTCD)
+    Set HN = fncGetTargetHinaSheet(lTargetKTCD)
     
     '雛型シート→編集シート
-    Call subInitialize
+    Call subInitialize(ST, HN)
     
     '見だし
     ST.Cells(5, 3) = Format(P_DATE, "yyyy年m月d日")
@@ -40,6 +89,7 @@ Private Sub subEditList4()
     ST.Cells(1, 4) = "製造終了"
     
     'ＤＢ接続
+    Set CN = New ADODB.Connection
     CN.CursorLocation = adUseClient
     CN.Open P_ConnectString
     
@@ -50,13 +100,15 @@ Private Sub subEditList4()
     strSQL = strSQL & "  ,BFCVNM "
     strSQL = strSQL & "  FROM LIBSMF17.SBFP01 "
     strSQL = strSQL & " WHERE BFDELT = '' "
+    strSQL = strSQL & "   AND BFKTCD = " & lTargetKTCD
     strSQL = strSQL & " ORDER BY BFCVNO "
     
+    Set RS = New ADODB.Recordset
     RS.Open strSQL, CN, adOpenForwardOnly, adLockReadOnly
     
     lRow = 12
     Do While Not RS.EOF
-        stHina4.Range(stHina4.Cells(12, 1), stHina4.Cells(11, 14)).Copy ST.Cells(lRow, 1)
+        HN.Range(HN.Cells(12, 1), HN.Cells(11, 14)).Copy ST.Cells(lRow, 1)
         ST.Cells(lRow, 2) = RS("BFCVNO")
         ST.Cells(lRow, 3) = RS("BFCVNM")
         lRow = lRow + 1
@@ -70,7 +122,7 @@ Private Sub subEditList4()
     lBKRow = lKRRow + 2     '備考欄
     
     '固定チェック項目、作業者、管理者、備考欄を挿入する
-    stHina4.Range(stHina4.Cells(13, 1), stHina4.Cells(19, 14)).Copy ST.Cells(lKTRow, 1)
+    HN.Range(HN.Cells(13, 1), HN.Cells(19, 14)).Copy ST.Cells(lKTRow, 1)
     ST.Rows(lSGRow + 1).Hidden = True
     ST.Rows(lKRRow + 1).Hidden = True
     
@@ -101,19 +153,32 @@ Private Sub subEditList4()
     strSQL = strSQL & "   AND BG.BGSDAT = " & Format(P_DATE, "yyyymmdd")
     strSQL = strSQL & "   AND BG.BGHINO = " & Val(P_HINO)
     strSQL = strSQL & "   AND BG.BGKJNO = '" & P_KJNO & "'"
+    strSQL = strSQL & "   AND BG.BGKTCD = " & lTargetKTCD
     strSQL = strSQL & " ORDER BY BG.BGDATE, BG.BGTIME "
     
+    Set RS = New ADODB.Recordset
     RS.Open strSQL, CN, adOpenForwardOnly, adLockReadOnly
     lCol = 3: strKey = ""
     Do While Not RS.EOF
-        If Not strKey = RS("BGDATE") & Format(RS("BGTIME"), "000000") Then
+        strDateYMD = fncFormatYMD(RS("BGDATE"))
+        strTimeHMS = fncFormatHMS(RS("BGTIME"))
+        strTimeHMM = fncFormatHMM(RS("BGTIME"))
+        strDateTime = Trim$(strDateYMD & " " & strTimeHMS)
+        If Not strKey = Replace$(strDateYMD, "/", "") & Replace$(strTimeHMS, ":", "") Then
             lCol = lCol + 1
-            ST.Cells(9, lCol) = Format(CDate(Format(RS("BGTIME"), "00:00:00")), "H:MM")
-            ST.Cells(10, lCol) = Format(RS("BGDATE"), "0000/00/00") & " " & Format(RS("BGTIME"), "00:00:00")
-            ST.Cells(11, lCol) = Format(RS("BGDATE"), "0000/00/00") & " " & Format(RS("BGTIME"), "00:00:00")
-            strKey = RS("BGDATE") & Format(RS("BGTIME"), "000000")
+            ST.Cells(9, lCol) = strTimeHMM
+            ST.Cells(10, lCol) = strDateTime
+            ST.Cells(11, lCol) = strDateTime
+            strKey = Replace$(strDateYMD, "/", "") & Replace$(strTimeHMS, ":", "")
         End If
-        lRow = fncFindRow(CLng(RS("BGCVNO")), lKTRow)
+        vCVNO = RS("BGCVNO")
+        If IsNull(vCVNO) Then
+            lRow = 0
+        ElseIf Trim$(CStr(vCVNO)) = "" Then
+            lRow = 0
+        Else
+            lRow = fncFindRow(ST, CLng(Val(CStr(vCVNO))), lKTRow)
+        End If
         If lRow > 0 Then
             ST.Cells(lRow, lCol) = fncGetKigo(RS("BGCKRT"))
             ST.Cells(lSGRow, lCol) = RS("SYKJ")
@@ -162,9 +227,11 @@ Private Sub subEditList4()
     strSQL = strSQL & "   AND BGSDAT=" & Val(Format(P_DATE, "yyyymmdd"))
     strSQL = strSQL & "   AND BGHINO=" & Val(P_HINO)
     strSQL = strSQL & "   AND BGKJNO='" & P_KJNO & "'"
+    strSQL = strSQL & "   AND BGKTCD=" & lTargetKTCD
     strSQL = strSQL & "   AND BGFNCD='1' "
     strSQL = strSQL & "   AND (BGCHKL<>'' OR BGCHKH<>'' OR BGCHKS<>'')"
 
+    Set RS = New ADODB.Recordset
     RS.Open strSQL, CN, adOpenForwardOnly, adLockReadOnly
     
     If RS.RecordCount > 0 Then
@@ -184,12 +251,68 @@ Private Sub subEditList4()
     ActiveWindow.ScrollRow = 1
     ActiveWindow.ScrollColumn = 1
     
+    Set HN = Nothing
     Set ST = Nothing
 End Sub
 
-Private Function fncFindRow(ByVal CVNO As Long, ByVal lKTRow As Long) As Long
+Private Function fncFormatYMD(ByVal vDate As Variant) As String
+    Dim s As String
+
+    fncFormatYMD = ""
+    If IsNull(vDate) Then Exit Function
+
+    s = Trim$(CStr(vDate))
+    If s = "" Then Exit Function
+    If Not IsNumeric(s) Then Exit Function
+
+    s = Right$("00000000" & CStr(CLng(s)), 8)
+    fncFormatYMD = Left$(s, 4) & "/" & Mid$(s, 5, 2) & "/" & Right$(s, 2)
+End Function
+
+Private Function fncFormatHMS(ByVal vTime As Variant) As String
+    Dim s As String
+    Dim hh As Long
+    Dim mm As Long
+    Dim ss As Long
+
+    fncFormatHMS = ""
+    If IsNull(vTime) Then Exit Function
+
+    s = Trim$(CStr(vTime))
+    If s = "" Then Exit Function
+    If Not IsNumeric(s) Then Exit Function
+
+    s = Right$("000000" & CStr(CLng(s)), 6)
+    hh = CLng(Left$(s, 2))
+    mm = CLng(Mid$(s, 3, 2))
+    ss = CLng(Right$(s, 2))
+    If hh > 23 Or mm > 59 Or ss > 59 Then Exit Function
+
+    fncFormatHMS = Right$("0" & CStr(hh), 2) & ":" & Right$("0" & CStr(mm), 2) & ":" & Right$("0" & CStr(ss), 2)
+End Function
+
+Private Function fncFormatHMM(ByVal vTime As Variant) As String
+    Dim s As String
+    Dim hh As Long
+    Dim mm As Long
+
+    fncFormatHMM = ""
+    If IsNull(vTime) Then Exit Function
+
+    s = Trim$(CStr(vTime))
+    If s = "" Then Exit Function
+    If Not IsNumeric(s) Then Exit Function
+
+    s = Right$("000000" & CStr(CLng(s)), 6)
+    hh = CLng(Left$(s, 2))
+    mm = CLng(Mid$(s, 3, 2))
+    If hh > 23 Or mm > 59 Then Exit Function
+
+    fncFormatHMM = CStr(hh) & ":" & Right$("0" & CStr(mm), 2)
+End Function
+
+Private Function fncFindRow(ByVal ST As Worksheet, ByVal CVNO As Long, ByVal lKTRow As Long) As Long
     Dim lRow        As Long
-    Dim ST          As Worksheet: Set ST = stList4
 
     fncFindRow = 0
     If CVNO >= 901 Then
@@ -204,7 +327,6 @@ Private Function fncFindRow(ByVal CVNO As Long, ByVal lKTRow As Long) As Long
             lRow = lRow + 1
         Loop
     End If
-    Set ST = Nothing
 
 End Function
 

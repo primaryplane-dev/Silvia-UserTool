@@ -1,12 +1,3 @@
-VERSION 1.0 CLASS
-BEGIN
-  MultiUse = -1  'True
-END
-Attribute VB_Name = "stList3"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = True
 Option Explicit
 
 Private Sub cmdSYCD_Click()
@@ -15,7 +6,8 @@ Private Sub cmdSYCD_Click()
 End Sub
 
 Private Sub subOpenSYCD()
-    Dim obj As New frmSYCD
+    Dim obj As frmSYCD
+    Set obj = New frmSYCD
     obj.Show
     Set obj = Nothing
 End Sub
@@ -24,14 +16,14 @@ Private Sub cmdSave_Click()
     If Me.Cells(1, 17) = "" Then Exit Sub
     If Me.Cells(4, 5) = "" Or Me.Cells(4, 8) = "" Then Exit Sub
     Call subUpdate3
-    Call subMain3
+    Call subProcessEditList
 End Sub
 
 Private Sub cmdBack_Click()
     If Me.Cells(1, 17) = "1" Then
         If MsgBox("ï€ë∂Ç≥ÇÍÇƒÇ¢Ç‹ÇπÇÒÇ™ÅAÇÊÇÎÇµÇ¢Ç≈Ç∑Ç©ÅH", vbOKCancel) = vbCancel Then Exit Sub
     End If
-    Call subMain
+    Call subShowList
 End Sub
 
 Private Sub cmdUp_Click()

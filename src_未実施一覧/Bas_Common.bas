@@ -1,4 +1,3 @@
-Attribute VB_Name = "Bas_Common"
 Option Explicit
 
 Public Sub subBeforeEdit()
@@ -14,12 +13,13 @@ Public Sub subAfterEdit()
 End Sub
 
 Public Function fncChkK(ByVal i_KBN As Integer) As String
-    Dim CN      As New ADODB.Connection
-    Dim RS      As New ADODB.Recordset
+    Dim CN      As ADODB.Connection
+    Dim RS      As ADODB.Recordset
     Dim strSQL  As String
     
     fncChkK = ""
     'DBê⁄ë±
+    Set CN = New ADODB.Connection
     CN.CursorLocation = adUseClient
     CN.Open P_ConnectString
     
@@ -28,6 +28,7 @@ Public Function fncChkK(ByVal i_KBN As Integer) As String
     strSQL = strSQL & "  WHERE TSDELT = '' "
     strSQL = strSQL & "    AND TSTTKB = '" & i_KBN & "' "
     strSQL = strSQL & "    AND TSSYCD = " & Val(P_SYCD)
+    Set RS = New ADODB.Recordset
     RS.Open strSQL, CN, adOpenForwardOnly, adLockReadOnly
     If RS.RecordCount > 0 Then
         fncChkK = RS("TSSYKJ")
@@ -51,7 +52,7 @@ End Function
 Public Function fncGetKTNM2(ByVal KTCD As String) As String
     fncGetKTNM2 = ""
     Select Case KTCD
-    Case "1": fncGetKTNM2 = "ê¨å`"
+    Case "1": fncGetKTNM2 = "ê¨å^"
     Case "2": fncGetKTNM2 = "ó‚ãp"
     End Select
 End Function
