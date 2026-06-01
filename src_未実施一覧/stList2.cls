@@ -24,7 +24,7 @@ Private Sub cmdBack_Click()
     If Not Me.Cells(6, 15) = "" Then
         If MsgBox("ï€ë∂Ç≥ÇÍÇƒÇ¢Ç‹ÇπÇÒÇ™ÅAÇÊÇÎÇµÇ¢Ç≈Ç∑Ç©ÅH", vbOKCancel) = vbCancel Then Exit Sub
     End If
-    Call subShowList
+    Call subDisplayList
 End Sub
 
 Private Sub cmdUp_Click()

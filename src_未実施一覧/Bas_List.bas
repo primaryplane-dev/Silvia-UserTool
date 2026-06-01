@@ -1,11 +1,62 @@
 Option Explicit
 
 Public Const RW_FR = 4
+Private Const CL_COND_DATEF As Long = 20
+Private Const CL_COND_DATET As Long = 21
+Private mSavedDateF As Date
+Private mSavedDateT As Date
 
 Public Sub subDisplayList()
+    Call subRestoreDateCondition
+    Call subSaveDateCondition
     Call subBeforeEdit
     Call subEditList
+    Call subSaveDateCondition
     Call subAfterEdit
+End Sub
+
+Private Sub subSaveDateCondition()
+    mSavedDateF = P_DATEF
+    mSavedDateT = P_DATET
+
+    If P_DATEF = 0 Then
+        stList.Cells(1, CL_COND_DATEF).Value = ""
+    Else
+        stList.Cells(1, CL_COND_DATEF).Value = CLng(P_DATEF)
+    End If
+
+    If P_DATET = 0 Then
+        stList.Cells(1, CL_COND_DATET).Value = ""
+    Else
+        stList.Cells(1, CL_COND_DATET).Value = CLng(P_DATET)
+    End If
+End Sub
+
+Private Sub subRestoreDateCondition()
+    Dim vDateF As Variant
+    Dim vDateT As Variant
+
+    If P_DATEF = 0 Then
+        If mSavedDateF <> 0 Then P_DATEF = mSavedDateF
+    End If
+    If P_DATET = 0 Then
+        If mSavedDateT <> 0 Then P_DATET = mSavedDateT
+    End If
+
+    vDateF = stList.Cells(1, CL_COND_DATEF).Value
+    vDateT = stList.Cells(1, CL_COND_DATET).Value
+
+    If P_DATEF = 0 Then
+        If IsNumeric(vDateF) Then
+            If CLng(vDateF) > 0 Then P_DATEF = CDate(CLng(vDateF))
+        End If
+    End If
+
+    If P_DATET = 0 Then
+        If IsNumeric(vDateT) Then
+            If CLng(vDateT) > 0 Then P_DATET = CDate(CLng(vDateT))
+        End If
+    End If
 End Sub
 
 Private Sub subInitialize()

@@ -16,14 +16,15 @@ Private Sub cmdSave_Click()
     If Me.Cells(1, 14) = "" Then Exit Sub
     If Me.Cells(5, 3) = "" Or Me.Cells(5, 5) = "" Then Exit Sub
     Call subUpdate4
-    Call subUpdateSheet
+    Call subPrepareEditSheet
+    Me.Cells(1, 14) = ""
 End Sub
 
 Private Sub cmdBack_Click()
-    If Me.Cells(1, 14) = "1" Then
+    If Val(Me.Cells(1, 14).Value) = 1 Then
         If MsgBox("ï€ë∂Ç≥ÇÍÇƒÇ¢Ç‹ÇπÇÒÇ™ÅAÇÊÇÎÇµÇ¢Ç≈Ç∑Ç©ÅH", vbOKCancel) = vbCancel Then Exit Sub
     End If
-    Call subUpdateSheet
+    Call subDisplayList
 End Sub
 
 Private Sub cmdUp_Click()
@@ -65,6 +66,6 @@ Private Sub Worksheet_SelectionChange(ByVal Target As Range)
 End Sub
 
 Private Sub subUpdateSheet()
-    Me.Cells(1, 14) = "1"
+    Me.Cells(1, 14) = ""
     Me.Cells(9, 2).Select
 End Sub

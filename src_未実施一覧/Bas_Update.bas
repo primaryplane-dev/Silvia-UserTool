@@ -76,7 +76,7 @@ Public Sub subUpdate4()
     lTargetKTCD = IIf(Val(P_KTCD) >= 21, 21, 1)
     On Error Resume Next
     If lTargetKTCD = 21 Then
-        Set ST = ThisWorkbook.Worksheets("stList5")
+        Set ST = stList5
     Else
         Set ST = stList4
     End If
@@ -95,9 +95,9 @@ Public Sub subUpdate4()
         strSQL = strSQL & "     ,BGUPGM='" & P_PGM & "'"
         strSQL = strSQL & "     ,BGUNTH = TO_CHAR(current timestamp, 'YYYYMMDD')"
         strSQL = strSQL & "     ,BGUTIM = TO_CHAR(current timestamp, 'HH24MISS')"
-        strSQL = strSQL & "     ,BGCHKL = " & Val(ST.Cells(6, 13))
-        strSQL = strSQL & "     ,BGCHKH = " & Val(ST.Cells(6, 12))
-        strSQL = strSQL & "     ,BGCHKS = " & Val(ST.Cells(6, 11))
+        strSQL = strSQL & "     ,BGCHKL = " & fncGetApproverCode(ST, 13)
+        strSQL = strSQL & "     ,BGCHKH = " & fncGetApproverCode(ST, 12)
+        strSQL = strSQL & "     ,BGCHKS = " & fncGetApproverCode(ST, 11)
         strSQL = strSQL & " WHERE BGDELT='' "
         strSQL = strSQL & "    AND BGSDAT=" & Val(Format(P_DATE, "yyyymmdd"))
         strSQL = strSQL & "    AND BGHINO='" & P_HINO & "'"
@@ -109,3 +109,23 @@ Public Sub subUpdate4()
     CN.Close: Set CN = Nothing
     Set ST = Nothing
 End Sub
+
+Private Function fncGetApproverCode(ByVal ST As Worksheet, ByVal lCol As Long) As Long
+    Dim vCode As Variant
+
+    fncGetApproverCode = 0
+
+    '現行レイアウト（7行目）を優先し、旧レイアウト（6行目）にも対応する
+    vCode = ST.Cells(7, lCol).Value
+    If IsNumeric(vCode) Then
+        If Val(vCode) > 0 Then
+            fncGetApproverCode = Val(vCode)
+            Exit Function
+        End If
+    End If
+
+    vCode = ST.Cells(6, lCol).Value
+    If IsNumeric(vCode) Then
+        fncGetApproverCode = Val(vCode)
+    End If
+End Function
