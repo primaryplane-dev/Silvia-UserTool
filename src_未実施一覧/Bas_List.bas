@@ -169,7 +169,7 @@ Private Sub subEditList()
         '    lRow = fncFindRow(ST, CLng(tmpCVNO), lKTRow)
         'End If
         lCol = 1: ST.Cells(lRow, lCol) = Left(RS("SDATE"), 4) & "/" & Mid(RS("SDATE"), 5, 2) & "/" & Right(RS("SDATE"), 2)
-        lCol = lCol + 1: ST.Cells(lRow, lCol) = fncGetSHNM(CStr(RS("SHBU"))) & RS("KBN") & IIf(RS("KBN") = "備品チェック表", "(" & fncGetKTNM2(CStr(RS("KTCD"))) & ")", "")
+        lCol = lCol + 1: ST.Cells(lRow, lCol) = fncGetSHNM(CStr(RS("SHBU"))) & RS("KBN") & IIf(RS("KBN") = "備品チェック表" Or RS("KBN") = "コンベアチェック表", "(" & fncGetKTNM2(CStr(RS("KTCD"))) & ")", "")
         lCol = lCol + 1: ST.Cells(lRow, lCol) = RS("HINM")
         lCol = lCol + 1: ST.Cells(lRow, lCol) = IIf(RS("CHKL") > 0, "○", "×")
         lCol = lCol + 1: ST.Cells(lRow, lCol) = IIf(RS("CHKH") > 0, "○", "×")

@@ -3,11 +3,21 @@ Option Explicit
 Private mPendingCol As Long
 
 Private Sub cmdSYCD_Click()
+    Dim lRow As Long
+    Dim lCol As Long
+
     Call subOpenSYCD
     If P_SYCD <> "" Then
         If mPendingCol >= 11 And mPendingCol <= 13 Then
             Call subApplyApproverByCol(mPendingCol)
             mPendingCol = 0
+        Else
+            '再選択イベントが発生しない場合でも、現在セルが承認欄なら適用する
+            lRow = ActiveCell.Row
+            lCol = ActiveCell.Column
+            If (lRow = 6 Or lRow = 7) And lCol >= 11 And lCol <= 13 Then
+                Call subApplyApproverByCol(lCol)
+            End If
         End If
     End If
     Me.Cells(9, 2).Select
@@ -85,7 +95,7 @@ Private Sub subApplyApproverByCol(ByVal lCol As Long)
     Dim strSYNM     As String
     
     '最終確認者、品管、ライン長
-    If Not Me.Cells(1, 4) = "製造終了" Then Exit Sub
+    If Not fncCanApplyApprover() Then Exit Sub
     Application.EnableEvents = False
     On Error GoTo Exit_
 
@@ -113,6 +123,13 @@ Private Sub subApplyApproverByCol(ByVal lCol As Long)
 Exit_:
     Application.EnableEvents = True
 End Sub
+
+Private Function fncCanApplyApprover() As Boolean
+    Dim sStatus As String
+
+    sStatus = Trim$(CStr(Me.Cells(1, 4).Value))
+    fncCanApplyApprover = (InStr(sStatus, "終了") > 0)
+End Function
 
 Private Sub Worksheet_BeforeDoubleClick(ByVal Target As Range, Cancel As Boolean)
     Call Worksheet_SelectionChange(Target)

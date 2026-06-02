@@ -18,31 +18,11 @@ Private Function fncGetTargetKTCD() As Long
 End Function
 
 Private Function fncGetTargetListSheet(ByVal lKTCD As Long) As Worksheet
-    On Error Resume Next
-    If lKTCD = 21 Then
-        Set fncGetTargetListSheet = stList5
-    Else
-        Set fncGetTargetListSheet = stList4
-    End If
-    On Error GoTo 0
-
-    If fncGetTargetListSheet Is Nothing Then
-        Set fncGetTargetListSheet = stList4
-    End If
+    Set fncGetTargetListSheet = stList4
 End Function
 
 Private Function fncGetTargetHinaSheet(ByVal lKTCD As Long) As Worksheet
-    On Error Resume Next
-    If lKTCD = 21 Then
-        Set fncGetTargetHinaSheet = stHina5
-    Else
-        Set fncGetTargetHinaSheet = stHina4
-    End If
-    On Error GoTo 0
-
-    If fncGetTargetHinaSheet Is Nothing Then
-        Set fncGetTargetHinaSheet = stHina4
-    End If
+    Set fncGetTargetHinaSheet = stHina4
 End Function
 
 Private Sub subInitialize(ByVal ST As Worksheet, ByVal HN As Worksheet)
@@ -84,6 +64,7 @@ Private Sub subEditList4()
     Call subInitialize(ST, HN)
     
     '見だし
+    ST.Cells(1, 2) = "ビスケットコンベアチェック表(" & fncGetKTNM2(CStr(lTargetKTCD)) & ")"
     ST.Cells(5, 3) = Format(P_DATE, "yyyy年m月d日")
     ST.Cells(5, 5) = P_HINM
     ST.Cells(1, 4) = "製造終了"

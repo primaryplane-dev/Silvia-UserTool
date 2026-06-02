@@ -74,14 +74,7 @@ Public Sub subUpdate4()
     Dim ST          As Worksheet
 
     lTargetKTCD = IIf(Val(P_KTCD) >= 21, 21, 1)
-    On Error Resume Next
-    If lTargetKTCD = 21 Then
-        Set ST = stList5
-    Else
-        Set ST = stList4
-    End If
-    On Error GoTo 0
-    If ST Is Nothing Then Set ST = stList4
+    Set ST = stList4
 
     'ＤＢ接続
     Set CN = New ADODB.Connection
@@ -112,10 +105,20 @@ End Sub
 
 Private Function fncGetApproverCode(ByVal ST As Worksheet, ByVal lCol As Long) As Long
     Dim vCode As Variant
+    Dim sName As String
 
     fncGetApproverCode = 0
 
-    '現行レイアウト（7行目）を優先し、旧レイアウト（6行目）にも対応する
+    'コード行（6行目）を優先
+    vCode = ST.Cells(6, lCol).Value
+    If IsNumeric(vCode) Then
+        If Val(vCode) > 0 Then
+            fncGetApproverCode = Val(vCode)
+            Exit Function
+        End If
+    End If
+
+    '互換: コードが7行目に入っている場合
     vCode = ST.Cells(7, lCol).Value
     If IsNumeric(vCode) Then
         If Val(vCode) > 0 Then
@@ -124,8 +127,56 @@ Private Function fncGetApproverCode(ByVal ST As Worksheet, ByVal lCol As Long) A
         End If
     End If
 
-    vCode = ST.Cells(6, lCol).Value
-    If IsNumeric(vCode) Then
-        fncGetApproverCode = Val(vCode)
+    '氏名のみ入力されている場合は社員コードを逆引きする
+    sName = Trim$(CStr(ST.Cells(7, lCol).Value))
+    If sName <> "" Then
+        fncGetApproverCode = fncGetSYCDByName(sName)
     End If
+End Function
+
+Private Function fncGetSYCDByName(ByVal iSYNM As String) As Long
+    Dim CN      As ADODB.Connection
+    Dim RS      As ADODB.Recordset
+    Dim strSQL  As String
+
+    fncGetSYCDByName = 0
+    If Trim$(iSYNM) = "" Then Exit Function
+
+    Set CN = New ADODB.Connection
+    Set RS = New ADODB.Recordset
+
+    CN.CursorLocation = adUseClient
+    CN.Open P_ConnectString
+
+    strSQL = ""
+    strSQL = strSQL & "SELECT TSSYCD "
+    strSQL = strSQL & "  FROM LIBSMF17.STSP01 "
+    strSQL = strSQL & " WHERE TSDELT='' "
+    strSQL = strSQL & "   AND TSSYKJ='" & Replace(iSYNM, "'", "''") & "' "
+    strSQL = strSQL & " FETCH FIRST 1 ROW ONLY"
+
+    RS.Open strSQL, CN, adOpenForwardOnly, adLockReadOnly
+    If Not RS.EOF Then
+        fncGetSYCDByName = Val(RS("TSSYCD"))
+    End If
+    RS.Close
+
+    If fncGetSYCDByName = 0 Then
+        strSQL = ""
+        strSQL = strSQL & "SELECT VASYCD "
+        strSQL = strSQL & "  FROM LIBBMF.BVAP01 "
+        strSQL = strSQL & " WHERE VAKYUK='' "
+        strSQL = strSQL & "   AND VASYKJ='" & Replace(iSYNM, "'", "''") & "' "
+        strSQL = strSQL & " FETCH FIRST 1 ROW ONLY"
+
+        RS.Open strSQL, CN, adOpenForwardOnly, adLockReadOnly
+        If Not RS.EOF Then
+            fncGetSYCDByName = Val(RS("VASYCD"))
+        End If
+        RS.Close
+    End If
+
+    Set RS = Nothing
+    CN.Close
+    Set CN = Nothing
 End Function

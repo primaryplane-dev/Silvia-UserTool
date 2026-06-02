@@ -32,7 +32,7 @@ Private Sub Worksheet_BeforeDoubleClick(ByVal Target As Range, Cancel As Boolean
         P_SYCD = ""
         P_SYNM = ""
         Call subMain2
-    ElseIf Me.Cells(Target.Row, 2) = "コンベアチェック表" Then
+    ElseIf InStr(Me.Cells(Target.Row, 2), "コンベアチェック表") > 0 Then
         P_SYCD = ""
         P_SYNM = ""
         P_KTCD = Me.Cells(Target.Row, 10)

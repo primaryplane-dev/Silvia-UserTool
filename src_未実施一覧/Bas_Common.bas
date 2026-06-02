@@ -50,10 +50,21 @@ Public Function fncGetSHNM(ByVal SHBU As String) As String
 End Function
 
 Public Function fncGetKTNM2(ByVal KTCD As String) As String
+    Dim lKTCD As Long
+
     fncGetKTNM2 = ""
     Select Case KTCD
     Case "1": fncGetKTNM2 = "ê¨å^"
     Case "2": fncGetKTNM2 = "ó‚ãp"
+    Case Else
+        If IsNumeric(KTCD) Then
+            lKTCD = CLng(Val(KTCD))
+            If lKTCD >= 21 Then
+                fncGetKTNM2 = "ó‚ãp"
+            ElseIf lKTCD > 0 Then
+                fncGetKTNM2 = "ê¨å^"
+            End If
+        End If
     End Select
 End Function
 
