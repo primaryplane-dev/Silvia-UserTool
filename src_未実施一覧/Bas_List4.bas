@@ -82,6 +82,7 @@ Private Sub subEditList4()
     strSQL = strSQL & "  FROM LIBSMF17.SBFP01 "
     strSQL = strSQL & " WHERE BFDELT = '' "
     strSQL = strSQL & "   AND BFKTCD = " & lTargetKTCD
+    strSQL = strSQL & "   AND BFCVNO NOT IN (9, 10) "
     strSQL = strSQL & " ORDER BY BFCVNO "
     
     Set RS = New ADODB.Recordset
@@ -294,31 +295,44 @@ End Function
 
 Private Function fncFindRow(ByVal ST As Worksheet, ByVal CVNO As Long, ByVal lKTRow As Long) As Long
     Dim lRow        As Long
+    Dim vNo         As Variant
+    Dim sNo         As String
 
     fncFindRow = 0
     If CVNO >= 901 Then
         fncFindRow = lKTRow + CVNO - 901
     Else
         lRow = 12
-        Do While Not ST.Cells(lRow, 2) = ""
-            If CLng(ST.Cells(lRow, 2)) = CVNO Then
-                fncFindRow = lRow
-                Exit Do
+        Do While lRow < lKTRow
+            vNo = ST.Cells(lRow, 2).Value
+            sNo = Trim$(CStr(vNo))
+            If sNo <> "" Then
+                sNo = StrConv(sNo, vbNarrow)
+                If IsNumeric(sNo) Then
+                    If CLng(Val(sNo)) = CVNO Then
+                        fncFindRow = lRow
+                        Exit Do
+                    End If
+                End If
             End If
             lRow = lRow + 1
         Loop
+
+        ' ŒÅ’èƒ`ƒFƒbƒN€–Ú‚ª 1`7 ‚Å•ÛŽ‚³‚ê‚éƒf[ƒ^‚É‘Î‰ž
+        If fncFindRow = 0 Then
+            If CVNO >= 1 And CVNO <= 7 Then
+                fncFindRow = lKTRow + CVNO - 1
+            End If
+        End If
     End If
 
 End Function
 
 Private Function fncGetKigo(ByVal i_KigoCD As String) As String
-    fncGetKigo = ""
     Select Case i_KigoCD
-    Case "1": fncGetKigo = "¢"
-    Case "2": fncGetKigo = "ž"
-    Case "3": fncGetKigo = "œ"
-    Case "4": fncGetKigo = "~"
-    Case "5": fncGetKigo = "›"
-    Case "0": fncGetKigo = "|"
+    Case "0": fncGetKigo = "~"
+    Case "1": fncGetKigo = "›"
+    Case "2": fncGetKigo = "|"
+    Case Else: fncGetKigo = i_KigoCD
     End Select
 End Function

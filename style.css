@@ -1,0 +1,48 @@
+/* Markdown PDF export font settings for Japanese text */
+@font-face {
+  font-family: "PDFJPBody";
+  src: local("Meiryo"), local("Yu Gothic UI"), local("Yu Gothic");
+}
+
+@font-face {
+  font-family: "PDFJPMono";
+  src: local("MS Gothic"), local("Meiryo UI"), local("Consolas");
+}
+
+html,
+body {
+  font-family: "PDFJPBody", "Meiryo", "Yu Gothic UI", "Yu Gothic", "MS PGothic", sans-serif;
+  font-size: 11pt;
+  line-height: 1.7;
+  word-break: break-word;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+strong,
+b {
+  font-family: "PDFJPBody", "Meiryo", "Yu Gothic UI", "Yu Gothic", sans-serif;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: "PDFJPMono", "MS Gothic", "Meiryo UI", "Consolas", monospace;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th,
+td {
+  border: 1px solid #d8d8d8;
+  padding: 6px 8px;
+  vertical-align: top;
+}
