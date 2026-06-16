@@ -2,7 +2,7 @@ Option Explicit
 
 Public Sub subProcessEditList()
     Call subBeforeEdit
-    Call subPerformEditList
+    Call subEditList3
     Call subAfterEdit
 End Sub
 

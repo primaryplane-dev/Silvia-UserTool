@@ -17,14 +17,6 @@ Private Function fncGetTargetKTCD() As Long
     End If
 End Function
 
-Private Function fncGetTargetListSheet(ByVal lKTCD As Long) As Worksheet
-    Set fncGetTargetListSheet = stList4
-End Function
-
-Private Function fncGetTargetHinaSheet(ByVal lKTCD As Long) As Worksheet
-    Set fncGetTargetHinaSheet = stHina4
-End Function
-
 Private Sub subInitialize(ByVal ST As Worksheet, ByVal HN As Worksheet)
     HN.Cells.Copy ST.Cells
     ST.Range("13:19").Delete
@@ -39,13 +31,8 @@ Private Sub subEditList4()
     Dim RS          As ADODB.Recordset
     Dim strSQL      As String
     Dim lRow        As Long
-    Dim startRow    As Long
     Dim lCol        As Long
-    Dim lCol2       As Long
-    Dim bEnd        As Boolean
     Dim strKey      As String
-    Dim Cnt         As Integer
-    Dim lEndRow     As Long
     Dim lKTRow      As Long
     Dim lSGRow      As Long
     Dim lKRRow      As Long
@@ -57,8 +44,8 @@ Private Sub subEditList4()
     Dim strDateTime As String
 
     lTargetKTCD = fncGetTargetKTCD()
-    Set ST = fncGetTargetListSheet(lTargetKTCD)
-    Set HN = fncGetTargetHinaSheet(lTargetKTCD)
+    Set ST = stList4
+    Set HN = stHina4
     
     '雛型シート→編集シート
     Call subInitialize(ST, HN)
@@ -82,7 +69,6 @@ Private Sub subEditList4()
     strSQL = strSQL & "  FROM LIBSMF17.SBFP01 "
     strSQL = strSQL & " WHERE BFDELT = '' "
     strSQL = strSQL & "   AND BFKTCD = " & lTargetKTCD
-    strSQL = strSQL & "   AND BFCVNO NOT IN (9, 10) "
     strSQL = strSQL & " ORDER BY BFCVNO "
     
     Set RS = New ADODB.Recordset
@@ -329,10 +315,11 @@ Private Function fncFindRow(ByVal ST As Worksheet, ByVal CVNO As Long, ByVal lKT
 End Function
 
 Private Function fncGetKigo(ByVal i_KigoCD As String) As String
+    ' 表示は stList3 と同じ 3 記号(×/○/－)に統一し、旧データのコード値(3/4/5)も互換吸収する
     Select Case i_KigoCD
-    Case "0": fncGetKigo = "×"
-    Case "1": fncGetKigo = "○"
-    Case "2": fncGetKigo = "－"
+    Case "0", "4": fncGetKigo = "×"
+    Case "1", "5": fncGetKigo = "○"
+    Case "2", "3": fncGetKigo = "－"
     Case Else: fncGetKigo = i_KigoCD
     End Select
 End Function
