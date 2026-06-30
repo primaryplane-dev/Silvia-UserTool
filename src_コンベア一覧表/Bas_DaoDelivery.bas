@@ -1,4 +1,3 @@
-Attribute VB_Name = "Bas_DaoDelivery"
 Option Explicit
 
 '' 品名リスト取得（SBGP01テーブル）
@@ -8,8 +7,8 @@ Public Function GetHinmList(ByVal yyyymmdd As String) As Object
     Set objResult = CreateObject("ADODB.Recordset")
     Dim CN As Object: Set CN = Bas_DbConnection.GetConnection()
     Dim strSQL As String
-    strSQL = "SELECT DISTINCT BGHINM, BGHINO, BGKJNO FROM LIBSMF17.SBGP01 " & _
-             "WHERE BGDELT = '' AND BGSDAT = " & yyyymmdd & " ORDER BY BGHINO, BGKJNO"
+    strSQL = "SELECT DISTINCT TRIM(BGHINM) AS BGHINM, TRIM(BGHINO) AS BGHINO, TRIM(BGKJNO) AS BGKJNO FROM LIBSMF17.SBGP01 " & _
+             "WHERE COALESCE(BGDELT,'') = '' AND BGSDAT = " & yyyymmdd & " ORDER BY TRIM(BGHINO), TRIM(BGKJNO)"
     objResult.Open strSQL, CN, 3, 1 ' adOpenStatic=3, adLockReadOnly=1
     Set GetHinmList = objResult
     Exit Function

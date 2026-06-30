@@ -91,6 +91,7 @@ Private Sub subEditList4()
     
     '固定チェック項目、作業者、管理者、備考欄を挿入する
     HN.Range(HN.Cells(13, 1), HN.Cells(19, 14)).Copy ST.Cells(lKTRow, 1)
+    Call subHideTemplateRows(ST, lKTRow, lKTRow + 6)
     ST.Rows(lSGRow + 1).Hidden = True
     ST.Rows(lKRRow + 1).Hidden = True
     
@@ -322,4 +323,30 @@ Private Function fncGetKigo(ByVal i_KigoCD As String) As String
     Case "2", "3": fncGetKigo = "－"
     Case Else: fncGetKigo = i_KigoCD
     End Select
+End Function
+
+Private Sub subHideTemplateRows(ByVal ST As Worksheet, ByVal lStartRow As Long, ByVal lEndRow As Long)
+    Dim lRow        As Long
+    Dim sName       As String
+
+    For lRow = lStartRow To lEndRow
+        sName = fncNormalizeName(CStr(ST.Cells(lRow, 3).Value))
+        If sName = "" Then sName = fncNormalizeName(CStr(ST.Cells(lRow, 2).Value))
+        If sName = "" Then sName = fncNormalizeName(CStr(ST.Cells(lRow, 5).Value))
+        If sName = "異音確認" Or sName = "動作確認(ノッキング)" Then
+            ST.Rows(lRow).Hidden = True
+        End If
+    Next lRow
+End Sub
+
+Private Function fncNormalizeName(ByVal sValue As String) As String
+    Dim s As String
+
+    s = Trim$(sValue)
+    s = Replace$(s, vbTab, "")
+    s = Replace$(s, "　", "")
+    s = Replace$(s, " ", "")
+    s = Replace$(s, "（", "(")
+    s = Replace$(s, "）", ")")
+    fncNormalizeName = s
 End Function

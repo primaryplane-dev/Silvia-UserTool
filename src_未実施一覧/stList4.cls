@@ -57,38 +57,21 @@ End Sub
 Private Sub Worksheet_SelectionChange(ByVal Target As Range)
     Dim lRow        As Long
     Dim lCol        As Long
-    Dim lInputCol   As Long
 
     lRow = Target.Row
     lCol = Target.Column
-
-    'L/Mが結合セル等でL列判定になる場合の補正
-    If lCol = 12 Then
-        If Me.Cells(7, 12) <> "" And Me.Cells(7, 13) = "" Then
-            lCol = 13
-        End If
-    End If
 
     If lRow <> 6 And lRow <> 7 Then Exit Sub
     If lCol < 11 Or lCol > 13 Then Exit Sub
     If Me.Cells(5, 3) = "" Or Me.Cells(5, 5) = "" Then Exit Sub
 
-    If lCol = 12 Or lCol = 13 Then
-        lInputCol = lCol
-        '結合セル等でL/Mの判定が不安定な場合でも、未入力側へ確実に設定する
-        If lInputCol = 12 And Me.Cells(7, 13) = "" Then lInputCol = 13
-        If lInputCol = 13 And Me.Cells(7, 13) <> "" And Me.Cells(7, 12) = "" Then lInputCol = 12
-    Else
-        lInputCol = lCol
-    End If
-
     If P_SYCD = "" Then
-        mPendingCol = lInputCol
+        mPendingCol = lCol
         MsgBox ("担当者を選択してください")
         Exit Sub
     End If
 
-    Call subApplyApproverByCol(lInputCol)
+    Call subApplyApproverByCol(lCol)
 End Sub
 
 Private Sub subApplyApproverByCol(ByVal lCol As Long)

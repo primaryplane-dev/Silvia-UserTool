@@ -1,4 +1,3 @@
-Attribute VB_Name = "Bas_List"
 Option Explicit
 
 ' システム管理者情報
@@ -74,7 +73,13 @@ Public Sub subEditList()
     Dim ST          As Worksheet: Set ST = stList
     Dim SET_WS      As Worksheet: Set SET_WS = stSetting
     Dim RS          As Object
+    Dim CN          As Object
+    Dim strSQL      As String
     Dim lRow        As Long
+    Dim lCol        As Long
+    Dim strKey      As String
+    Dim strHinoEsc  As String
+    Dim strKjnoEsc  As String
     
     ' ---------------------------------------------------------
     ' 1. 初期化 & ヘッダ情報セット
@@ -118,6 +123,9 @@ Public Sub subEditList()
     ST.Cells(1, CL_SY).Value = ""
     ST.Cells(4, CL_SY).Value = P_SYCD
     ST.Cells(6, CL_SY).Value = P_SYNM
+
+    strHinoEsc = Replace(Trim$(P_HINO & ""), "'", "''")
+    strKjnoEsc = Replace(Trim$(P_KJNO & ""), "'", "''")
     
     ' ---------------------------------------------------------
     ' 2. マスタデータ(SBFP01) 読込（BLL経由）
@@ -164,9 +172,11 @@ Public Sub subEditList()
     strSQL = strSQL & "  LEFT JOIN LIBSMF17.STSP01 AS TS2 ON TS2.TSDELT = '' AND TS2.TSSYCD = BG.BGCHKK AND TS2.TSTTKB = '4' "
     strSQL = strSQL & "  LEFT JOIN LIBBMF.BVAP01   AS VA2 ON VA2.VAKYUK = '' AND VA2.VASYCD = BG.BGCHKK "
     
-    strSQL = strSQL & " WHERE BG.BGDELT = '' "
+    strSQL = strSQL & " WHERE COALESCE(BG.BGDELT,'') = '' "
     strSQL = strSQL & "   AND BG.BGSDAT = " & Val(Format(P_DATE, "yyyymmdd"))
-    strSQL = strSQL & "   AND BG.BGHINO = " & Val(P_HINO)
+    strSQL = strSQL & "   AND TRIM(BG.BGHINO) = '" & strHinoEsc & "'"
+    strSQL = strSQL & "   AND TRIM(BG.BGKJNO) = '" & strKjnoEsc & "'"
+    strSQL = strSQL & "   AND COALESCE(BG.BGFNCD,'') <> '1' "
     
     If P_ChkKBN = 1 Then
         strSQL = strSQL & "   AND CAST(BG.BGKTCD AS INT) >= 1 AND CAST(BG.BGKTCD AS INT) <= 20 "
@@ -203,7 +213,11 @@ Public Sub subEditList()
                 If Len(sTime) = 6 Then
                     ST.Cells(ROW_TIME, lCol).Value = Format(TimeSerial(Left(sTime, 2), Mid(sTime, 3, 2), Right(sTime, 2)), "h:mm")
                 End If
-                ST.Cells(ROW_NAME, lCol).Value = RS("SYKJ")
+                If Trim$(RS("KKSYKJ") & "") <> "" Then
+                    ST.Cells(ROW_NAME, lCol).Value = RS("KKSYKJ")
+                Else
+                    ST.Cells(ROW_NAME, lCol).Value = RS("SYKJ")
+                End If
             End If
             
             blockIdx = blockIdx + 1
@@ -226,12 +240,26 @@ Public Sub subEditList()
             End If
         End If
         
-        If RS("BGFNCD") = "1" Then
-             ST.Cells(1, CL_SY + 1).Value = "製造終了"
-        End If
-        
         RS.MoveNext
     Loop
+
+    If RS.State = 1 Then RS.Close
+
+    ' 製造終了データの有無を別判定（通常明細では除外済み）
+    strSQL = ""
+    strSQL = strSQL & "SELECT 1 AS HIT "
+    strSQL = strSQL & "  FROM LIBSMF17.SBGP01 AS BG "
+    strSQL = strSQL & " WHERE COALESCE(BG.BGDELT,'') = '' "
+    strSQL = strSQL & "   AND BG.BGSDAT = " & Val(Format(P_DATE, "yyyymmdd"))
+    strSQL = strSQL & "   AND TRIM(BG.BGHINO) = '" & strHinoEsc & "'"
+    strSQL = strSQL & "   AND TRIM(BG.BGKJNO) = '" & strKjnoEsc & "'"
+    strSQL = strSQL & "   AND COALESCE(BG.BGFNCD,'') = '1' "
+    strSQL = strSQL & " FETCH FIRST 1 ROW ONLY"
+
+    RS.Open strSQL, CN, 0, 1
+    If Not RS.EOF Then
+        ST.Cells(1, CL_SY + 1).Value = "製造終了"
+    End If
     
     ' 終了処理
     If RS.State = 1 Then RS.Close

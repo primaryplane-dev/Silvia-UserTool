@@ -1,4 +1,3 @@
-Attribute VB_Name = "Bas_List"
 Option Explicit
 
 Public Sub subMain()
@@ -15,7 +14,15 @@ Public Sub subMain2()
 End Sub
 
 Private Sub subInitialize()
+    Dim lRow As Long
+
     stHina.Cells.Copy stList.Cells
+    ' 前回実行時の非表示行が残らないように初期化
+    stList.Cells.EntireRow.Hidden = False
+    ' ヘッダー領域は雛型シートの非表示設定を優先
+    For lRow = 1 To RW_FR - 1
+        stList.Rows(lRow).Hidden = stHina.Rows(lRow).Hidden
+    Next
     ' ビスケット備品入力同様、初期状態の不要行を削除して詰める
     stList.Range("12:16").Delete
     stList.Select
@@ -98,6 +105,8 @@ Private Sub subEditList()
     
     ' 作業者、管理者、備考欄を挿入 (雛型の12～16行目をコピー)
     stHina.Range(stHina.Cells(12, 1), stHina.Cells(16, 17)).Copy ST.Cells(P_SGRow, 1)
+    ' 雛型側の非表示状態が残るのを防ぐため、挿入範囲は一旦すべて表示
+    ST.Rows(P_SGRow & ":" & P_BKRow + 1).Hidden = False
     ST.Rows(P_SGRow + 1).Hidden = True
     ST.Rows(P_KRRow + 1).Hidden = True
     
