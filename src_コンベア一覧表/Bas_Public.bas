@@ -1,7 +1,12 @@
-Attribute VB_Name = "Bas_Public"
 Option Explicit
 
-'' DB接続文字列はBas_Configuration.GetConnectionString()で取得
+'' 接続先切替用
+'' 運用ルール:
+'' 1) 本番接続は P_ConnectString の1行だけを有効化する
+'' 2) 切替時は Bas_List / Bas_DbConnection の双方がこの定数を参照していることを確認する
+'' 3) 接続先変更後は「件数・時間列・製造終了表示」をチェックリストで確認する
+'Public Const P_ConnectString    As String = "Provider=IBMDA400;Data Source=FUJIPAN;User ID=ODBC001;Password=FJPN2480;"
+Public Const P_ConnectString     As String = "Provider=IBMDA400;Data Source=HONSHA;User ID=ODBC001;Password=FJPN2480;"
 Public Const P_PGM              As String = "EXCEL"
 
 ' frmMenu用

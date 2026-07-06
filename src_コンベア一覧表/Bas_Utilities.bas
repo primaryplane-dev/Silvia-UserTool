@@ -1,10 +1,3 @@
-Attribute VB_Name = "Bas_Utilities"
-'/**
-' * @file Bas_Utilities.bas
-' * @brief 汎用ユーティリティ関数群
-' * @note 文字列操作、日付変換など、システム全体で共通利用する処理をまとめる
-' */
-
 Option Explicit
 
 '/**

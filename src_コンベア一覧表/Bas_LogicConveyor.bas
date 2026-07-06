@@ -1,10 +1,3 @@
-Attribute VB_Name = "Bas_LogicConveyor"
-'/**
-' * @file Bas_LogicConveyor.bas
-' * @brief コンベア業務ロジック層 (BLL)
-' * @note コンベアに関する業務ルールを適用する実装例
-' */
-
 Option Explicit
 
 '/**
@@ -65,10 +58,14 @@ Public Function GetConveyorListWithLogic() As Object
 
     If Not rsRaw Is Nothing Then
         Do While Not rsRaw.EOF
-            ' 例：名称が空欄でないものだけ返す
-            If Trim(rsRaw("BFCVNM") & "") <> "" Then
+            Dim lKTCD As Long
+            lKTCD = CLng(Val(rsRaw("BFKTCD") & ""))
+
+            ' 旧挙動に合わせ、名称空欄でも工程区分に該当すれば返す
+            If (P_ChkKBN = 1 And lKTCD >= 1 And lKTCD <= 20) _
+               Or (P_ChkKBN = 2 And lKTCD >= 21) Then
                 rsResult.AddNew
-                rsResult("工程") = fncGetKTNM(CStr(rsRaw("BFKTCD") & ""))
+                rsResult("工程") = CStr(lKTCD)
                 rsResult("No") = rsRaw("BFCVNO")
                 rsResult("名称") = rsRaw("BFCVNM")
                 rsResult.Update
@@ -84,4 +81,30 @@ Public Function GetConveyorListWithLogic() As Object
 ErrorHandler:
     Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] Bas_LogicConveyor.GetConveyorListWithLogic: " & Err.Number & " - " & Err.Description
     Set GetConveyorListWithLogic = Nothing
+End Function
+
+'/**
+' * @brief 工程コードから工程名を取得する
+' * @param strKTCD 工程コード
+' * @return String 工程名（成型/冷却）
+' */
+Private Function fncGetKTNM(ByVal strKTCD As String) As String
+    On Error GoTo ErrorHandler
+
+    Dim lKTCD As Long
+    lKTCD = CLng(Val(strKTCD))
+
+    If lKTCD >= 1 And lKTCD <= 20 Then
+        fncGetKTNM = "成型"
+    ElseIf lKTCD >= 21 Then
+        fncGetKTNM = "冷却"
+    Else
+        fncGetKTNM = ""
+    End If
+
+    Exit Function
+
+ErrorHandler:
+    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] Bas_LogicConveyor.fncGetKTNM: " & Err.Number & " - " & Err.Description
+    fncGetKTNM = ""
 End Function

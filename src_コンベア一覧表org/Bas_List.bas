@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_List"
 Option Explicit
 
 ' システム管理者情報
@@ -72,17 +73,17 @@ End Sub
 Public Sub subEditList()
     Dim ST          As Worksheet: Set ST = stList
     Dim SET_WS      As Worksheet: Set SET_WS = stSetting
-    Dim RS          As Object
     Dim CN          As Object
+    Dim RS          As Object
     Dim strSQL      As String
     Dim lRow        As Long
     Dim lCol        As Long
     Dim strKey      As String
-    Dim strHinoEsc  As String
-    Dim strKjnoEsc  As String
-    Dim strConnectString As String
     Dim vKTCD       As Variant
     Dim vCVNM       As Variant
+    
+    Set CN = CreateObject("ADODB.Connection")
+    Set RS = CreateObject("ADODB.Recordset")
     
     ' ---------------------------------------------------------
     ' 1. 初期化 & ヘッダ情報セット
@@ -126,28 +127,13 @@ Public Sub subEditList()
     ST.Cells(1, CL_SY).Value = ""
     ST.Cells(4, CL_SY).Value = P_SYCD
     ST.Cells(6, CL_SY).Value = P_SYNM
-
-    strHinoEsc = Replace(Trim$(P_HINO & ""), "'", "''")
-    strKjnoEsc = Replace(Trim$(P_KJNO & ""), "'", "''")
     
     ' ---------------------------------------------------------
     ' 2. DB接続 & マスタデータ(SBFP01) 読込
-    '    ※ org と同じ直SQL方式で行構成を合わせる
-    '    ※ BC列(隠しキー)には工程コード(BFKTCD)を保持すること
-    '       fncFindRow は BC列の数値比較で行特定するため、ここを変更すると
-    '       ○×の書き込み行が一致しなくなる
     ' ---------------------------------------------------------
-    Set CN = CreateObject("ADODB.Connection")
-    CN.CursorLocation = 3
-    strConnectString = P_ConnectString
-    If Trim$(strConnectString) = "" Then
-        MsgBox "データベース接続文字列の取得に失敗しました。", vbCritical
-        Set CN = Nothing
-        Exit Sub
-    End If
-    CN.Open strConnectString
-
-    Set RS = CreateObject("ADODB.Recordset")
+    CN.CursorLocation = 3 ' adUseClient
+    CN.Open P_ConnectString
+    
     strSQL = ""
     strSQL = strSQL & "SELECT BFKTCD, BFCVNO, BFCVNM "
     strSQL = strSQL & "  FROM LIBSMF17.SBFP01 "
@@ -158,55 +144,43 @@ Public Sub subEditList()
         strSQL = strSQL & "   AND CAST(BFKTCD AS INT) >= 21 "
     End If
     strSQL = strSQL & " ORDER BY BFKTCD, BFCVNO "
-
+    
     RS.Open strSQL, CN, 0, 1
-
-    lRow = RW_FR ' データ開始行
+    
+    lRow = RW_FR ' 36行目から開始
     Do While Not RS.EOF
         vKTCD = RS("BFKTCD") & ""
         vCVNM = RS("BFCVNM") & ""
-
+        
+        ' 修正済みの安全な行コピー
         If lRow > RW_FR Then
             ST.Rows(lRow & ":" & lRow + 1).Insert Shift:=xlDown
             ST.Rows(RW_FR & ":" & RW_FR + 1).Copy Destination:=ST.Rows(lRow)
         End If
-
-        ST.Cells(lRow, 1).Value = RS("BFCVNO")
-        ST.Cells(lRow, 2).Value = vCVNM
-        ST.Cells(lRow, "BC").Value = vKTCD
-
+        
+        ST.Cells(lRow, 1).Value = RS("BFCVNO") ' No
+        ST.Cells(lRow, 2).Value = vCVNM        ' 名称
+        ST.Cells(lRow, "BC").Value = vKTCD     ' 隠しキー
+        
         lRow = lRow + 2
         RS.MoveNext
     Loop
-    If RS.State = 1 Then RS.Close
+    RS.Close
     ST.Columns("BC").Hidden = True
     
     ' =========================================================
     ' ★修正：SQL0514エラー対策（完全に接続を作り直す）
     ' =========================================================
-    If Not RS Is Nothing Then
-        If RS.State = 1 Then RS.Close
-    End If
-    If Not CN Is Nothing Then
-        If CN.State = 1 Then CN.Close
-    End If
+    If RS.State = 1 Then RS.Close
+    If CN.State = 1 Then CN.Close
     Set CN = Nothing
     Set CN = CreateObject("ADODB.Connection")
     CN.CursorLocation = 3
-    strConnectString = P_ConnectString
-    If Trim$(strConnectString) = "" Then
-        MsgBox "データベース接続文字列の取得に失敗しました。", vbCritical
-        Set CN = Nothing
-        Exit Sub
-    End If
-    CN.Open strConnectString
+    CN.Open P_ConnectString
     ' =========================================================
     
     ' ---------------------------------------------------------
     ' 3. 実績データ(SBGP01) 読込 & 展開
-    '    ※ org互換のため HINO は数値比較(BG.BGHINO = Val(P_HINO))
-    '    ※ KJNO は絞り込みに使わない（orgはHINO単位で集約）
-    '    ※ 製造終了データも明細表示対象に含める（BGFNCD除外しない）
     ' ---------------------------------------------------------
     strSQL = ""
     strSQL = strSQL & "SELECT BG.* "
@@ -218,7 +192,7 @@ Public Sub subEditList()
     strSQL = strSQL & "  LEFT JOIN LIBSMF17.STSP01 AS TS2 ON TS2.TSDELT = '' AND TS2.TSSYCD = BG.BGCHKK AND TS2.TSTTKB = '4' "
     strSQL = strSQL & "  LEFT JOIN LIBBMF.BVAP01   AS VA2 ON VA2.VAKYUK = '' AND VA2.VASYCD = BG.BGCHKK "
     
-    strSQL = strSQL & " WHERE COALESCE(BG.BGDELT,'') = '' "
+    strSQL = strSQL & " WHERE BG.BGDELT = '' "
     strSQL = strSQL & "   AND BG.BGSDAT = " & Val(Format(P_DATE, "yyyymmdd"))
     strSQL = strSQL & "   AND BG.BGHINO = " & Val(P_HINO)
     
@@ -233,30 +207,7 @@ Public Sub subEditList()
     
     ' データが1件もない場合はメッセージを出して終了
     If RS.EOF Then
-        Dim RSCHK As Object
-        Dim strChkSQL As String
-        Set RSCHK = CreateObject("ADODB.Recordset")
-
-        strChkSQL = ""
-        strChkSQL = strChkSQL & "SELECT COUNT(*) AS CNT_ALL "
-        strChkSQL = strChkSQL & "  FROM LIBSMF17.SBGP01 AS BG "
-        strChkSQL = strChkSQL & " WHERE COALESCE(BG.BGDELT,'') = '' "
-        strChkSQL = strChkSQL & "   AND BG.BGSDAT = " & Val(Format(P_DATE, "yyyymmdd"))
-        strChkSQL = strChkSQL & "   AND BG.BGHINO = " & Val(P_HINO)
-
-        RSCHK.Open strChkSQL, CN, 0, 1
-        If Not RSCHK.EOF Then
-            If CLng(RSCHK("CNT_ALL")) > 0 Then
-                MsgBox "指定条件のデータはありますが、区分条件に一致する明細がありません。", vbExclamation
-            Else
-                MsgBox "指定された日付・品名の実績データが存在しません。", vbExclamation
-            End If
-        Else
-            MsgBox "指定された日付・品名の実績データが存在しません。", vbExclamation
-        End If
-
-        If RSCHK.State = 1 Then RSCHK.Close
-        Set RSCHK = Nothing
+        MsgBox "指定された日付・品名の実績データが存在しません。", vbExclamation
     End If
     
     ' ブロック番号(0～6)で列を管理する
@@ -280,7 +231,6 @@ Public Sub subEditList()
                 If Len(sTime) = 6 Then
                     ST.Cells(ROW_TIME, lCol).Value = Format(TimeSerial(Left(sTime, 2), Mid(sTime, 3, 2), Right(sTime, 2)), "h:mm")
                 End If
-                ' org互換: 時間ヘッダの担当者は SYKJ を使用
                 ST.Cells(ROW_NAME, lCol).Value = RS("SYKJ")
             End If
             
@@ -304,35 +254,16 @@ Public Sub subEditList()
             End If
         End If
         
+        If RS("BGFNCD") = "1" Then
+             ST.Cells(1, CL_SY + 1).Value = "製造終了"
+        End If
+        
         RS.MoveNext
     Loop
-
-    If Not RS Is Nothing Then
-        If RS.State = 1 Then RS.Close
-    End If
-
-    ' 製造終了データの有無を別判定（通常明細では除外済み）
-    strSQL = ""
-    strSQL = strSQL & "SELECT 1 AS HIT "
-    strSQL = strSQL & "  FROM LIBSMF17.SBGP01 AS BG "
-    strSQL = strSQL & " WHERE COALESCE(BG.BGDELT,'') = '' "
-    strSQL = strSQL & "   AND BG.BGSDAT = " & Val(Format(P_DATE, "yyyymmdd"))
-    strSQL = strSQL & "   AND BG.BGHINO = " & Val(P_HINO)
-    strSQL = strSQL & "   AND COALESCE(BG.BGFNCD,'') = '1' "
-    strSQL = strSQL & " FETCH FIRST 1 ROW ONLY"
-
-    RS.Open strSQL, CN, 0, 1
-    If Not RS.EOF Then
-        ST.Cells(1, CL_SY + 1).Value = "製造終了"
-    End If
     
     ' 終了処理
-    If Not RS Is Nothing Then
-        If RS.State = 1 Then RS.Close
-    End If
-    If Not CN Is Nothing Then
-        If CN.State = 1 Then CN.Close
-    End If
+    If RS.State = 1 Then RS.Close
+    If CN.State = 1 Then CN.Close
     Set RS = Nothing
     Set CN = Nothing
 End Sub

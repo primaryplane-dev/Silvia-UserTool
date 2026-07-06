@@ -1,24 +1,3 @@
-VERSION 5.00
-Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmMenu 
-   Caption         =   "条件指定"
-   ClientHeight    =   4905
-   ClientLeft      =   45
-   ClientTop       =   330
-   ClientWidth     =   13290
-   OleObjectBlob   =   "frmMenu.frx":0000
-   StartUpPosition =   1  'オーナー フォームの中央
-End
-Attribute VB_Name = "frmMenu"
-Attribute VB_GlobalNameSpace = False
-Attribute VB_Creatable = False
-Attribute VB_PredeclaredId = True
-Attribute VB_Exposed = False
-'/**
-' * @file frmMenu.frm
-' * @brief 条件指定メニュー画面 (UI 層)
-' * @note ユーザーによる条件指定・商品選択・メイン処理呼び出しを担当
-' */
-
 Option Explicit
 
 '/**
@@ -141,6 +120,9 @@ Private Sub subOpenCalendar()
     On Error GoTo ErrorHandler
 
     P_CalendarSelected = False
+    If IsDate(Me.txtDate.Value) Then
+        P_calDATE = CDate(Me.txtDate.Value)
+    End If
     Dim obj As New frmCalendar
     obj.Show
     Set obj = Nothing

@@ -1,9 +1,3 @@
-Attribute VB_Name = "Bas_Configuration"
-'/**
-' * @file Bas_Configuration.bas
-' * @brief 環境設定および共通定数管理モジュール
-' */
-
 Option Explicit
 
 '/** @brief システム名称 (メッセージボックスのタイトル等で使用) */

@@ -1,10 +1,3 @@
-Attribute VB_Name = "Bas_DataConstants"
-'/**
-' * @file Bas_DataConstants.bas
-' * @brief データアクセス関連の共有定数定義モジュール
-' * @note レイトバインド (ADODB) で使用するマジックナンバーを名前付き定数として管理
-' */
-
 Option Explicit
 
 ' --- ADODB.Connection / Recordset State ---

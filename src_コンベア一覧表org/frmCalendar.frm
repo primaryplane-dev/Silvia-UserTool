@@ -1,89 +1,61 @@
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmCalendar 
+   Caption         =   "カレンダ"
+   ClientHeight    =   7590
+   ClientLeft      =   45
+   ClientTop       =   330
+   ClientWidth     =   5310
+   OleObjectBlob   =   "frmCalendar.frx":0000
+   StartUpPosition =   1  'オーナー フォームの中央
+End
+Attribute VB_Name = "frmCalendar"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
 Option Explicit
 
-'/**
-' * @brief フォーム初期化処理
-' */
 Private Sub UserForm_Initialize()
-    On Error GoTo ErrorHandler
-
     Dim dateWK      As Date
-    P_CalendarSelected = False
+    
+    P_Regist2 = False
     dateWK = Now
     If P_calDATE > 0 Then dateWK = P_calDATE
     Me.txtDate = Format(dateWK, "yyyy/mm/dd")
     
     'カレンダを描画する
     Call SetCalender(dateWK)
-
-    Exit Sub
-
-ErrorHandler:
-    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmCalendar.UserForm_Initialize: " & Err.Number & " - " & Err.Description
-    Call MsgBox("画面初期化中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
-'/**
-' * @brief 決定ボタン押下時の処理
-' */
+'決定ボタン押下時
 Private Sub cmdOK_Click()
-    On Error GoTo ErrorHandler
-
     Call subOK
-
-    Exit Sub
-
-ErrorHandler:
-    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmCalendar.cmdOK_Click: " & Err.Number & " - " & Err.Description
-    Call MsgBox("決定処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
-'/**
-' * @brief 日付決定処理
-' */
 Private Sub subOK()
-    On Error GoTo ErrorHandler
-
     P_calDATE = CDate(Me.txtDate)
-    P_CalendarSelected = True
+    P_Regist2 = True
     Unload Me
-
-    Exit Sub
-
-ErrorHandler:
-    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmCalendar.subOK: " & Err.Number & " - " & Err.Description
-    Call MsgBox("日付決定処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
-'/**
-' * @brief キャンセルボタン押下時の処理
-' */
+'キャンセルボタン押下時
 Private Sub cmdCancel_Click()
-    On Error GoTo ErrorHandler
-
     Unload Me
-
-    Exit Sub
-    
-ErrorHandler:
-    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmCalendar.cmdCancel_Click: " & Err.Number & " - " & Err.Description
-    Call MsgBox("キャンセル処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
+
 
 '--- ↓日付描画関連↓ ---
-'/**
-' * @brief カレンダ描画
-' */
+'カレンダ描画
 Private Sub SetCalender(ByVal i_Date As Date)
-    On Error GoTo ErrorHandler
-
     Dim i           As Integer
     Dim dateWK      As Date
     Dim dateFR      As Date
     Dim dateTO      As Date
     Dim strName     As String
+
     Me.txtYear = Format(i_Date, "yyyy")
     Me.txtMonth = Format(i_Date, "m")
-
+    
     'カレンダをクリアする
     For i = 1 To 42
         strName = "cln" & Format(i, "00")
@@ -92,7 +64,6 @@ Private Sub SetCalender(ByVal i_Date As Date)
         Me(strName).Enabled = False
         Me(strName).ForeColor = vbBlack
     Next
-    
     '月初～月末の日付を入れる
     dateFR = DateSerial(Year(i_Date), Month(i_Date), 1)             '月初
     dateTO = DateSerial(Year(i_Date), Month(i_Date) + 1, 1) - 1     '月末
@@ -103,83 +74,44 @@ Private Sub SetCalender(ByVal i_Date As Date)
         Me(strName).Caption = Format(dateWK, "d")
         Me(strName).Tag = Format(dateWK, "yyyy/mm/dd")
         Me(strName).Enabled = True
-        If Weekday(CDate(Me(strName).Tag)) = vbSunday Then Me(strName).ForeColor = vbRed
-        If CDate(Me(strName).Tag) = CDate(Me.txtDate) Then Me(strName).ForeColor = vbBlue
+        If Weekday(Me(strName).Tag) = vbSunday Then Me(strName).ForeColor = vbRed
+        If Me(strName).Tag = Me.txtDate Then Me(strName).ForeColor = vbBlue
     Next
-
-    Exit Sub
-
-ErrorHandler:
-    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmCalendar.SetCalender: " & Err.Number & " - " & Err.Description
-    Call MsgBox("カレンダ描画中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
-'/**
-' * @brief < ボタン押下時の処理
-' */
+' < ボタン押下時
 Private Sub cmdMonthDown_Click()
-    On Error GoTo ErrorHandler
-
     Dim dateWK      As Date
+    
     'カレンダを描画する(前月)
     cmdMonthDown.Enabled = False
-    dateWK = DateSerial(CLng(Val(Me.txtYear)), CLng(Val(Me.txtMonth)), 1)
+    dateWK = DateSerial(Me.txtYear, Me.txtMonth, 1)
     dateWK = DateAdd("m", -1, dateWK)
     Call SetCalender(dateWK)
     cmdMonthDown.Enabled = True
-
-    Exit Sub
-
-ErrorHandler:
-    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmCalendar.cmdMonthDown_Click: " & Err.Number & " - " & Err.Description
-    Call MsgBox("前月描画処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
-'/**
-' * @brief > ボタン押下時の処理
-' */
+' > ボタン押下時
 Private Sub cmdMonthUp_Click()
-    On Error GoTo ErrorHandler
-
     Dim dateWK      As Date
-
+    
     'カレンダを描画する(翌月)
     cmdMonthUp.Enabled = False
-    dateWK = DateSerial(CLng(Val(Me.txtYear)), CLng(Val(Me.txtMonth)), 1)
+    dateWK = DateSerial(Me.txtYear, Me.txtMonth, 1)
     dateWK = DateAdd("m", 1, dateWK)
-
     Call SetCalender(dateWK)
     cmdMonthUp.Enabled = True
-
-    Exit Sub
-
-ErrorHandler:
-    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmCalendar.cmdMonthUp_Click: " & Err.Number & " - " & Err.Description
-    Call MsgBox("翌月描画処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
-'/**
-' * @brief 今日ボタン押下時の処理
-' */
+
+'--- ↓日付選択関連↓ ---
+'今日ボタン押下時
 Private Sub cmdToday_Click()
-    On Error GoTo ErrorHandler
-
-    Me.txtDate = Format(Date, "yyyy/mm/dd")
-    Call SetCalender(Date)
-    
-    Exit Sub
-
-ErrorHandler:
-    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmCalendar.cmdToday_Click: " & Err.Number & " - " & Err.Description
-    Call MsgBox("今日選択処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
+    Me.txtDate = Format(Now, "yyyy/mm/dd")
+    Call SetCalender(Now)
 End Sub
 
-'/**
-' * @brief 日付選択時の処理
-' */
 Private Sub SetDate(ByVal i_ctlIdx As Integer)
-    On Error GoTo ErrorHandler
-
     Dim i           As Integer
     Dim strName     As String
     
@@ -187,21 +119,13 @@ Private Sub SetDate(ByVal i_ctlIdx As Integer)
     For i = 1 To 42
         strName = "cln" & Format(i, "00")
         Me(strName).ForeColor = vbBlack
-        If Len(Me(strName).Tag & "") > 0 Then
-            If Weekday(CDate(Me(strName).Tag)) = vbSunday Then Me(strName).ForeColor = vbRed
-        End If
+        If Weekday(Me(strName).Tag) = vbSunday Then Me(strName).ForeColor = vbRed
     Next
-
+    
     '選択された日を青文字表示
     strName = "cln" & Format(i_ctlIdx, "00")
     Me(strName).ForeColor = vbBlue
     Me.txtDate = Me(strName).Tag
-
-    Exit Sub
-    
-ErrorHandler:
-    Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmCalendar.SetDate: " & Err.Number & " - " & Err.Description
-    Call MsgBox("日付選択処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
 
 Private Sub cln01_Enter()

@@ -1,9 +1,3 @@
-Attribute VB_Name = "Bas_DbConnection"
-'/**
-' * @file Bas_DbConnection.bas
-' * @brief データベース接続・トランザクション管理モジュール
-' */
-
 Option Explicit
 
 '/** @brief 現在のデータベース接続オブジェクトを保持するモジュール変数 */
@@ -27,7 +21,7 @@ Public Function GetConnection() As Object
     ' 新規接続の作成
     Set M_objConnection = CreateObject("ADODB.Connection")
     With M_objConnection
-        .ConnectionString = Bas_Configuration.GetConnectionString()
+        .ConnectionString = P_ConnectString
         .ConnectionTimeout = Bas_Configuration.DB_CONNECTION_TIMEOUT
         .CommandTimeout = Bas_Configuration.DB_COMMAND_TIMEOUT
         .CursorLocation = AD_USE_CLIENT
