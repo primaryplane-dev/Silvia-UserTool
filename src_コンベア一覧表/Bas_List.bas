@@ -110,6 +110,11 @@ Public Sub subEditList()
     End If
     ST.Range("A1").Value = SET_WS.Cells(2, targetCol).Value
     ST.Range("Y2").Interior.Color = sColor
+
+    ' 役割者表示セルは後段で実績データからセットする
+    ST.Range("AJ2").Value = ""
+    ST.Range("AN2").Value = ""
+    ST.Range("AR2").Value = ""
     
     ' 名前の展開 (F34, L34... 7ブロック分)
     Dim sMemberNames As String
@@ -207,6 +212,7 @@ Public Sub subEditList()
     '    ※ org互換のため HINO は数値比較(BG.BGHINO = Val(P_HINO))
     '    ※ KJNO は絞り込みに使わない（orgはHINO単位で集約）
     '    ※ 製造終了データも明細表示対象に含める（BGFNCD除外しない）
+    '    ※ ただし BGFNCD='1'（生産終了）は時刻ブロックでなく AP列へ固定表示する
     ' ---------------------------------------------------------
     strSQL = ""
     strSQL = strSQL & "SELECT BG.* "
@@ -265,31 +271,44 @@ Public Sub subEditList()
     strKey = ""
     
     Do While Not RS.EOF
+        Dim isProductionEnd As Boolean
+        Dim writeCol As Long
         Dim sCurrentTimeKey As String
         sCurrentTimeKey = RS("BGDATE") & Format(RS("BGTIME"), "000000")
+        ' 生産終了フラグ: '1' の明細は通常の時刻枠に混在させない
+        isProductionEnd = (CStr(RS("BGFNCD") & "") = "1")
         
-        ' 日時が変わったら次のブロック(列)へ移動
-        If strKey <> sCurrentTimeKey Then
-            ' F(6), L(12), R(18), X(24), AD(30), AJ(36), AP(42) 列目へ
-            lCol = 6 + (blockIdx * 6)
-            
-            ' 枠の最大数(7回)以内ならヘッダ情報を書く
-            If blockIdx <= 6 Then
-                Dim sTime As String
-                sTime = Format(RS("BGTIME"), "000000")
-                If Len(sTime) = 6 Then
-                    ST.Cells(ROW_TIME, lCol).Value = Format(TimeSerial(Left(sTime, 2), Mid(sTime, 3, 2), Right(sTime, 2)), "h:mm")
+        If isProductionEnd Then
+            ' 要件対応:
+            ' 生産終了分は「作業終了清掃時・中間確認」側に出さず、最終ブロック(AP列)へ固定する
+            writeCol = 42
+        Else
+            ' 日時が変わったら次のブロック(列)へ移動
+            If strKey <> sCurrentTimeKey Then
+                ' F(6), L(12), R(18), X(24), AD(30), AJ(36), AP(42) 列目へ
+                lCol = 6 + (blockIdx * 6)
+                
+                ' 枠の最大数(7回)以内ならヘッダ情報を書く
+                If blockIdx <= 6 Then
+                    Dim sTime As String
+                    sTime = Format(RS("BGTIME"), "000000")
+                    If Len(sTime) = 6 Then
+                        ST.Cells(ROW_TIME, lCol).Value = Format(TimeSerial(Left(sTime, 2), Mid(sTime, 3, 2), Right(sTime, 2)), "h:mm")
+                    End If
+                    ' org互換: 時間ヘッダの担当者は SYKJ を使用
+                    ST.Cells(ROW_NAME, lCol).Value = RS("SYKJ")
                 End If
-                ' org互換: 時間ヘッダの担当者は SYKJ を使用
-                ST.Cells(ROW_NAME, lCol).Value = RS("SYKJ")
+
+                blockIdx = blockIdx + 1
+                strKey = sCurrentTimeKey
             End If
-            
-            blockIdx = blockIdx + 1
-            strKey = sCurrentTimeKey
+
+            ' 通常明細は従来どおり時刻キーで決まったブロック列へ表示する
+            writeCol = lCol
         End If
         
         ' 行の検索 & 結果セット (枠の最大数以内のみ書き込み)
-        If blockIdx <= 7 Then
+        If blockIdx <= 7 Or isProductionEnd Then
             lRow = fncFindRow(RS("BGKTCD"), CLng(RS("BGCVNO")))
             
             If lRow > 0 Then
@@ -300,7 +319,7 @@ Public Sub subEditList()
                     Case "2": sRes = "－"
                     Case Else: sRes = RS("BGCKRT")
                 End Select
-                ST.Cells(lRow, lCol).Value = sRes
+                ST.Cells(lRow, writeCol).Value = sRes
             End If
         End If
         
@@ -310,6 +329,44 @@ Public Sub subEditList()
     If Not RS Is Nothing Then
         If RS.State = 1 Then RS.Close
     End If
+
+    ' ---------------------------------------------------------
+    ' 4. 管理者(最終確認者/品管/責任者)を生産終了データから取得
+    '    AJ2: 最終確認者(BGCHKS)
+    '    AN2: 品管(BGCHKH)
+    '    AR2: 責任者(BGCHKL)
+    ' ---------------------------------------------------------
+    strSQL = ""
+    strSQL = strSQL & "SELECT "
+    strSQL = strSQL & "       COALESCE(NULLIF(TS3.TSSYKJ,''), VA3.VASYKJ, '') AS KSSYKJ "
+    strSQL = strSQL & "     , COALESCE(NULLIF(TS2.TSSYKJ,''), VA2.VASYKJ, '') AS KHSYKJ "
+    strSQL = strSQL & "     , COALESCE(NULLIF(TS1.TSSYKJ,''), VA1.VASYKJ, '') AS KLSYKJ "
+    strSQL = strSQL & "  FROM LIBSMF17.SBGP01 AS BG "
+    strSQL = strSQL & "  LEFT JOIN LIBSMF17.STSP01 AS TS1 ON TS1.TSDELT = '' AND TS1.TSSYCD = BG.BGCHKL AND TS1.TSTTKB = '2' "
+    strSQL = strSQL & "  LEFT JOIN LIBBMF.BVAP01   AS VA1 ON VA1.VAKYUK = '' AND VA1.VASYCD = BG.BGCHKL "
+    strSQL = strSQL & "  LEFT JOIN LIBSMF17.STSP01 AS TS2 ON TS2.TSDELT = '' AND TS2.TSSYCD = BG.BGCHKH AND TS2.TSTTKB = '2' "
+    strSQL = strSQL & "  LEFT JOIN LIBBMF.BVAP01   AS VA2 ON VA2.VAKYUK = '' AND VA2.VASYCD = BG.BGCHKH "
+    strSQL = strSQL & "  LEFT JOIN LIBSMF17.STSP01 AS TS3 ON TS3.TSDELT = '' AND TS3.TSSYCD = BG.BGCHKS AND TS3.TSTTKB = '3' "
+    strSQL = strSQL & "  LEFT JOIN LIBBMF.BVAP01   AS VA3 ON VA3.VAKYUK = '' AND VA3.VASYCD = BG.BGCHKS "
+    strSQL = strSQL & " WHERE COALESCE(BG.BGDELT,'') = '' "
+    strSQL = strSQL & "   AND BG.BGSDAT = " & Val(Format(P_DATE, "yyyymmdd"))
+    strSQL = strSQL & "   AND BG.BGHINO = " & Val(P_HINO)
+    strSQL = strSQL & "   AND COALESCE(BG.BGFNCD,'') = '1' "
+    If P_ChkKBN = 1 Then
+        strSQL = strSQL & "   AND CAST(BG.BGKTCD AS INT) >= 1 AND CAST(BG.BGKTCD AS INT) <= 20 "
+    ElseIf P_ChkKBN = 2 Then
+        strSQL = strSQL & "   AND CAST(BG.BGKTCD AS INT) >= 21 "
+    End If
+    strSQL = strSQL & " ORDER BY BG.BGDATE DESC, BG.BGTIME DESC "
+    strSQL = strSQL & " FETCH FIRST 1 ROW ONLY"
+
+    RS.Open strSQL, CN, 0, 1
+    If Not RS.EOF Then
+        ST.Range("AJ2").Value = RS("KSSYKJ")
+        ST.Range("AN2").Value = RS("KHSYKJ")
+        ST.Range("AR2").Value = RS("KLSYKJ")
+    End If
+    If RS.State = 1 Then RS.Close
 
     ' 製造終了データの有無を別判定（通常明細では除外済み）
     strSQL = ""
