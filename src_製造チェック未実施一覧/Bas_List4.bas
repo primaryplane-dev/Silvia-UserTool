@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_List4"
 Option Explicit
 
 Public Sub subPrepareEditSheet()
@@ -350,3 +351,4 @@ Private Function fncNormalizeName(ByVal sValue As String) As String
     s = Replace$(s, "Åj", ")")
     fncNormalizeName = s
 End Function
+

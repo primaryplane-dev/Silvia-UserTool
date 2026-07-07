@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_Common"
 Option Explicit
 
 Public Sub subBeforeEdit()
@@ -67,4 +68,5 @@ Public Function fncGetKTNM2(ByVal KTCD As String) As String
         End If
     End Select
 End Function
+
 

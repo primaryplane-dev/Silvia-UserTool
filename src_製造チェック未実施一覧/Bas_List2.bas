@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_List2"
 Option Explicit
 
 Public Sub subMain2()
@@ -177,5 +178,6 @@ Private Sub subSort()
 Exit_:
     Set ST = Nothing
 End Sub
+
 
 

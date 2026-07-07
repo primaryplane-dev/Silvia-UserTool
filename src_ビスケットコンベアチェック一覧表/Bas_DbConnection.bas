@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_DbConnection"
 Option Explicit
 
 '/** @brief 現在のデータベース接続オブジェクトを保持するモジュール変数 */
@@ -59,3 +60,4 @@ ErrorHandler:
     Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] Bas_DbConnection.CloseConnection: " & Err.Number & " - " & Err.Description
     Set M_objConnection = Nothing
 End Sub
+

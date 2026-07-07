@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_DaoDelivery"
 Option Explicit
 
 '' 品名リスト取得（SBGP01テーブル）
@@ -30,3 +31,5 @@ Public Function GetConveyorList() As Object
 ErrorHandler:
     Set GetConveyorList = Nothing
 End Function
+
+

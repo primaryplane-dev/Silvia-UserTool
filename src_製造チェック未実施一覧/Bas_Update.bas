@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_Update"
 Option Explicit
 
 Public Sub subUpdate2()
@@ -180,3 +181,4 @@ Private Function fncGetSYCDByName(ByVal iSYNM As String) As Long
     CN.Close
     Set CN = Nothing
 End Function
+

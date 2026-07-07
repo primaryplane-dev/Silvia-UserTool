@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_Utilities"
 Option Explicit
 
 '/**
@@ -155,4 +156,5 @@ Public Sub FillListBox(lst As MSForms.ListBox, arr As Variant)
         lst.AddItem arr(i)
     Next
 End Sub
+
 

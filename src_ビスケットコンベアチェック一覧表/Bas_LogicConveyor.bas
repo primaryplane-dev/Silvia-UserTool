@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_LogicConveyor"
 Option Explicit
 
 '/**
@@ -108,3 +109,5 @@ ErrorHandler:
     Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] Bas_LogicConveyor.fncGetKTNM: " & Err.Number & " - " & Err.Description
     fncGetKTNM = ""
 End Function
+
+

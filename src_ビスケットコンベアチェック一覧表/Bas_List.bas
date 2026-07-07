@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_List"
 Option Explicit
 
 ' システム管理者情報
@@ -499,3 +500,4 @@ Public Sub subCloseBook()
     ' 保存せずにブックを閉じる
     ThisWorkbook.Close False
 End Sub
+

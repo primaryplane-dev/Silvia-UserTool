@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_DataConstants"
 Option Explicit
 
 ' --- ADODB.Connection / Recordset State ---
@@ -38,3 +39,4 @@ Public Const AD_PARAM_INPUT As Long = 1
 Public Const AD_INTEGER As Long = 3
 '/** @brief ‰Â•Ï’·•¶š—ñŒ^ (String) ‚ğ¦‚·’è” */
 Public Const AD_VAR_CHAR As Long = 200
+

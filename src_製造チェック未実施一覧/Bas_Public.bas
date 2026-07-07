@@ -1,8 +1,8 @@
 Attribute VB_Name = "Bas_Public"
 Option Explicit
 
-'Public Const P_ConnectString  As String = "Provider=IBMDA400;Data Source=FUJIPAN;User ID=ODBC001;Password=FJPN2480;"
-Public Const P_ConnectString  As String = "Provider=IBMDA400;Data Source=HONSHA;User ID=ODBC001;Password=FJPN2480;"
+Public Const P_ConnectString  As String = "Provider=IBMDA400;Data Source=FUJIPAN;User ID=ODBC001;Password=FJPN2480;"
+'Public Const P_ConnectString  As String = "Provider=IBMDA400;Data Source=HONSHA;User ID=ODBC001;Password=FJPN2480;"
 
 'frmSelect‚©‚ç
 Public P_DATEF              As Date

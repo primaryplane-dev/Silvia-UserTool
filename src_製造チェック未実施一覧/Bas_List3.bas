@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_List3"
 Option Explicit
 
 Public Sub subProcessEditList()
@@ -287,4 +288,5 @@ Public Sub subShowList()
     ' 必要な処理をここに記述
     MsgBox "リストを表示します"
 End Sub
+
 

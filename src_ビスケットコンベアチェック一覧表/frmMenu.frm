@@ -1,3 +1,18 @@
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} frmMenu 
+   Caption         =   "条件指定"
+   ClientHeight    =   4905
+   ClientLeft      =   45
+   ClientTop       =   330
+   ClientWidth     =   13290
+   OleObjectBlob   =   "frmMenu.frx":0000
+   StartUpPosition =   1  'オーナー フォームの中央
+End
+Attribute VB_Name = "frmMenu"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
 Option Explicit
 
 '/**
@@ -192,3 +207,4 @@ ErrorHandler:
     Debug.Print "[" & Format(Now, Bas_Configuration.LOG_DATE_FORMAT) & "] [Error] frmMenu.subMakeComboHINM: " & Err.Number & " - " & Err.Description
     Call MsgBox("商品リスト取得処理中にエラーが発生しました。", vbCritical, Bas_Configuration.SYSTEM_NAME)
 End Sub
+

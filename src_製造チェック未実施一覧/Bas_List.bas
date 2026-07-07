@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_List"
 Option Explicit
 
 Public Const RW_FR = 4
@@ -205,3 +206,4 @@ End Sub
 Public Sub subMain3()
     ' 必要な処理をここに記述
 End Sub
+

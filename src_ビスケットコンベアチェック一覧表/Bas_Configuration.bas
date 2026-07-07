@@ -1,3 +1,4 @@
+Attribute VB_Name = "Bas_Configuration"
 Option Explicit
 
 '/** @brief システム名称 (メッセージボックスのタイトル等で使用) */
@@ -50,3 +51,4 @@ ErrorHandler:
     Call MsgBox("システムの接続設定の読み込みに失敗しました。システム管理者へ連絡してください。", vbCritical, SYSTEM_NAME)
     GetConnectionString = ""
 End Function
+
