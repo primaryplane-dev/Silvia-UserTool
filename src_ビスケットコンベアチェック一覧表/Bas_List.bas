@@ -1,4 +1,3 @@
-Attribute VB_Name = "Bas_List"
 Option Explicit
 
 ' システム管理者情報
@@ -313,14 +312,7 @@ Public Sub subEditList()
             lRow = fncFindRow(RS("BGKTCD"), CLng(RS("BGCVNO")))
             
             If lRow > 0 Then
-                Dim sRes As String
-                Select Case CStr(RS("BGCKRT"))
-                    Case "0": sRes = "×"
-                    Case "1": sRes = "○"
-                    Case "2": sRes = "－"
-                    Case Else: sRes = RS("BGCKRT")
-                End Select
-                ST.Cells(lRow, writeCol).Value = sRes
+                ST.Cells(lRow, writeCol).Value = fncGetKigo(CStr(RS("BGCKRT") & ""))
             End If
         End If
         
@@ -487,8 +479,15 @@ Private Function fncFindRow(ByVal KTCD As String, ByVal CVNO As Long) As Long
     Set ST = Nothing
 End Function
 
-
-
+Private Function fncGetKigo(ByVal i_KigoCD As String) As String
+    ' 未実施一覧(stList4)と同じ記号変換。旧データのコード値(3/4/5)も互換吸収する
+    Select Case i_KigoCD
+    Case "0", "4": fncGetKigo = "×"
+    Case "1", "5": fncGetKigo = "○"
+    Case "2", "3": fncGetKigo = "－"
+    Case Else: fncGetKigo = i_KigoCD
+    End Select
+End Function
 
 ' 終了ボタン用マクロ
 Public Sub subCloseBook()
